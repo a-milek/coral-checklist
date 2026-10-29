@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Coral Island Checklist</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap">
+<style>
+/* Layout: lagoon header with altar tabs, then a grid of offering "baskets", each a checklist of items */
+:root{
+  --bg:#eef5f3; --surface:#ffffff; --surface-2:#e2eeeb; --line:#cddfda;
+  --fg:#16332f; --muted:#5b7772; --lagoon:#0e7c74; --lagoon-ink:#ffffff;
+  --coral:#e2574c; --done:#2f9e5b; --done-bg:#e3f4e9;
+  --q-bronze:#a8682f; --q-silver:#7d8a96; --q-gold:#c79a12; --q-osmium:#7b5cc4;
+  --f-display:"Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --f-body:"Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1d1c; --surface:#122927; --surface-2:#183533; --line:#24443f;
+  --fg:#dcefeb; --muted:#8fb0aa; --lagoon:#1aa79b; --lagoon-ink:#04201d;
+  --coral:#ff7b6e; --done:#4cc782; --done-bg:#16382a;
+  --q-bronze:#d99556; --q-silver:#b4c0cb; --q-gold:#e8c14a; --q-osmium:#a98cf0;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0c1d1c; --surface:#122927; --surface-2:#183533; --line:#24443f;
+  --fg:#dcefeb; --muted:#8fb0aa; --lagoon:#1aa79b; --lagoon-ink:#04201d;
+  --coral:#ff7b6e; --done:#4cc782; --done-bg:#16382a;
+  --q-bronze:#d99556; --q-silver:#b4c0cb; --q-gold:#e8c14a; --q-osmium:#a98cf0;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{padding-block:22px 6px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,5vw,40px);line-height:1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 span{color:var(--lagoon)}
+.sub{color:var(--muted);margin:6px 0 0;font-size:14px}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--done);box-shadow:0 0 0 3px color-mix(in srgb,var(--done) 25%,transparent)}
+.dot.err{background:var(--coral)}
+.temple{margin-top:16px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{flex:1;height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--lagoon);border-radius:inherit;transition:width .3s}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px;border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 14px var(--f-body);padding:8px 14px;border-radius:99px;cursor:pointer;text-decoration:none}
+.tab small{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}
+.tab[aria-current="page"]{background:var(--lagoon);border-color:var(--lagoon);color:var(--lagoon-ink)}
+.tab[aria-current="page"] small{color:inherit;opacity:.85}
+.tab.complete small{color:var(--done)}
+.tab[aria-current="page"].complete small{color:inherit}
+.tab:focus-visible,.item:focus-within,button:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
+main{padding-block:18px 48px}
+.altar-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:14px}
+.altar-head h2{font-family:var(--f-display);font-weight:800;font-size:26px;margin:0}
+.altar-head p{margin:0;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
+.offer{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.offer.done{border-color:color-mix(in srgb,var(--done) 55%,var(--line))}
+.offer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 10px}
+.offer-head h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0;line-height:1.15;min-width:0}
+.need{font-size:12px;color:var(--muted);margin-top:2px;font-weight:600}
+.count{flex:none;font:700 13px var(--f-body);font-variant-numeric:tabular-nums;padding:3px 10px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.offer.done .count{background:var(--done-bg);color:var(--done)}
+ul{list-style:none;margin:0;padding:0 6px 6px}
+.item{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:9px;cursor:pointer;user-select:none}
+.item:hover{background:var(--surface-2)}
+.item input{position:absolute;opacity:0;pointer-events:none}
+.box{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;background:var(--surface);transition:background .15s,border-color .15s}
+.box svg{width:13px;height:13px;stroke:var(--surface);stroke-width:3.2;fill:none;opacity:0}
+.item input:checked + .box{background:var(--done);border-color:var(--done)}
+.item input:checked + .box svg{opacity:1}
+.name{flex:1;min-width:0;font-weight:600}
+.item input:checked ~ .name{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+.qty{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700;font-size:13px}
+.q{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:1px 7px;border-radius:99px;border:1.5px solid currentColor}
+.q.bronze{color:var(--q-bronze)}.q.silver{color:var(--q-silver)}.q.gold{color:var(--q-gold)}.q.osmium{color:var(--q-osmium)}
+.who{flex:none;width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--surface-2)}
+.reward{border-top:1px dashed var(--line);padding:8px 14px 10px;font-size:13px;color:var(--muted)}
+.reward b{color:var(--fg);font-weight:700}
+.note{margin-top:22px;font-size:13px;color:var(--muted);max-width:68ch}
+.note a{color:var(--lagoon)}
+.banner{margin:12px 0 0;padding:10px 14px;border-radius:10px;background:var(--surface-2);color:var(--fg);font-size:14px}
+.reset{background:none;border:1px solid var(--line);color:var(--muted);font:600 13px var(--f-body);padding:6px 12px;border-radius:99px;cursor:pointer}
+.reset.arm{border-color:var(--coral);color:var(--coral)}
+@media (max-width:420px){.grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{--sp:#3f9e4d;--su:#c49a12;--fa:#d0702a;--wi:#3d8bd1}
+.modes{display:flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:12px;width:max-content;max-width:100%}
+.mode{border:0;background:none;color:var(--muted);font:700 14px var(--f-body);padding:8px 16px;border-radius:9px;cursor:pointer;text-decoration:none}
+.mode[aria-current="page"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px color-mix(in srgb,var(--fg) 15%,transparent)}
+.progress{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 24px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:14px}
+.search{flex:1 1 200px;min-width:0;max-width:340px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 14px var(--f-body);padding:8px 12px;border-radius:10px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--fg);font:700 13px var(--f-body);padding:6px 11px;border-radius:99px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.mlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.mlist.fishes{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.mrow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:2px}
+.mrow.got{background:color-mix(in srgb,var(--done-bg) 60%,var(--surface))}
+.finfo{padding:0 10px 9px 42px;font-size:13px;color:var(--muted);display:grid;gap:3px}
+.finfo b{color:var(--fg);font-weight:700}
+.finfo .tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:1px}
+.sea{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:1px 7px;border-radius:99px;border:1.5px solid currentColor}
+.sea.s{color:var(--sp)}.sea.u{color:var(--su)}.sea.f{color:var(--fa)}.sea.w{color:var(--wi)}
+.sea.x{color:var(--muted)}
+.rar{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.rar.Rare{color:var(--wi)}.rar.Legendary{color:var(--q-osmium)}
+.src{font-size:11px;font-style:italic}
+.offer .finfo{padding:0 8px 6px 40px;font-size:12px}
+.item.has-info{cursor:default}
+.tick{display:grid;place-items:center;cursor:pointer;margin:-4px;padding:4px}
+.name-btn{background:none;border:0;padding:2px 0;margin:0;font:inherit;font-weight:600;color:var(--fg);text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px}
+.name-btn:hover{color:var(--lagoon)}
+.chev{font-size:11px;color:var(--muted)}
+.ticked .name-btn{color:var(--muted);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--muted) 60%,transparent)}
+.rar.SuperRare{color:var(--fa)}
+.drops{display:grid;gap:2px;font-variant-numeric:tabular-nums}
+.drop{display:flex;justify-content:space-between;gap:12px}
+.empty{color:var(--muted);padding:24px 4px}
+@media (max-width:420px){.mlist.fishes{grid-template-columns:1fr}}
+</style>
+<style>
+.roombar{margin-top:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:13px;color:var(--muted)}
+.roombar input{border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 14px var(--f-body);padding:6px 10px;border-radius:9px;width:150px}
+.roombar button{border:1px solid var(--lagoon);background:var(--lagoon);color:var(--lagoon-ink);font:700 13px var(--f-body);padding:7px 12px;border-radius:99px;cursor:pointer}
+.roombar .linkbox{flex:1 1 260px;min-width:0;border:1px dashed var(--line);border-radius:9px;padding:6px 10px;font:12px ui-monospace,Menlo,Consolas,monospace;overflow-wrap:anywhere;color:var(--fg);background:var(--surface)}
+</style>
+</head><body>
+
+
+<header class="wrap">
+  <div class="top">
+    <div>
+      <h1>Coral Island <span>Checklist</span></h1>
+      <p class="sub">Shared with everyone on this page. Ticks sync live.</p>
+    </div>
+    <div class="status"><span class="dot" id="dot"></span><span id="statusText">Connecting…</span></div>
+  </div>
+  <div class="progress">
+    <div class="temple"><span id="templeText">Temple 0 / 0</span><div class="bar"><i id="templeBar" style="width:0"></i></div></div>
+    <div class="temple"><span id="museumText">Museum 0 / 0</span><div class="bar"><i id="museumBar" style="width:0"></i></div></div>
+  </div>
+  <div class="banner" id="banner" hidden></div>
+  <div class="roombar" id="roombar">
+    <label for="nick">Your name</label>
+    <input id="nick" maxlength="20" autocomplete="nickname" placeholder="e.g. WM">
+    <button id="copyLink" type="button">Copy invite link</button>
+    <span id="copied" hidden>Copied. Send it to your friend.</span>
+    <div class="linkbox" id="linkbox"></div>
+  </div>
+</header>
+<nav><div class="wrap" style="display:grid;gap:10px">
+  <div class="modes" id="modes"></div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+</div></nav>
+<main class="wrap">
+  <div class="altar-head"><h2 id="altarTitle"></h2><p id="altarSub"></p><span style="flex:1"></span><button class="reset" id="resetBtn" type="button">Clear this altar</button></div>
+  <div class="toolbar" id="toolbar" hidden>
+    <input class="search" id="search" type="search" placeholder="Search this collection" autocomplete="off">
+    <span id="seasonChips" style="display:contents"></span>
+    <button class="chip" id="hideGot" type="button" aria-pressed="false">Hide donated</button>
+  </div>
+  <div id="grid"></div>
+  <p class="note" id="note"></p>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const ALTARS = [
+ {id:"cropaltar", name:"Crop Altar", reward:"Unlocks the Greenhouse", offers:[
+  {k:"Essential_Offerings", t:"Essential Resources", need:5, items:[["Wood",10],["Stone",10],["Fiber",10],["Sap",10],["Maple Seeds",5],["Oak Seeds",5],["Pine Cone",5]]},
+  {k:"Spring_Offerings", t:"Spring Sesajen", need:-1, items:[["Wasabi"],["Morel"],["Turnip"],["Carrot"],["Daisy"]]},
+  {k:"Summer_Offerings", t:"Summer Sesajen", need:-1, items:[["Shallot"],["Hibiscus"],["Blueberry"],["Hot Pepper"],["Sunflower",1,"b"]]},
+  {k:"Fall_Offerings", t:"Fall Sesajen", need:-1, items:[["Black Trumpet"],["Fig"],["Orchid"],["Pumpkin"],["Rice",1,"b"]]},
+  {k:"Winter_Offerings", t:"Winter Sesajen", need:-1, items:[["Brussels Sprouts"],["Kale"],["Rose Hip"],["Snowdrop"],["Tea Leaf",1,"b"]]},
+  {k:"Ocean_Offerings", t:"Ocean Loot", need:-1, reward:"Dehydrator", items:[["Sea Salt",5],["King Scallop"],["Eastern Oyster"],["Blue Mussel"],["Green Sea Urchin"]]},
+ ]},
+ {id:"catchaltar", name:"Catch Altar", offers:[
+  {k:"Fresh_Water_Fish_Offerings", t:"Freshwater Fish", need:-1, items:[["Catfish"],["Tilapia"],["Rainbow Fish"],["Silver Arowana"],["Koi",1,"s"]]},
+  {k:"Salt_Water_Fish_Offerings", t:"Saltwater Fish", need:-1, items:[["Pink Snapper"],["Lionfish"],["Asian Sheepshead"],["Yellowfin Tuna"],["Sardine",1,"s"]]},
+  {k:"Rare_Fish_Offerings", t:"Rare Fish", need:-1, items:[["Sturgeon"],["Gator Gar"],["Arapaima"],["Giant Sea Bass"],["Yellow Moray Eel"]]},
+  {k:"Day_Insects_Offerings", t:"Day Insects", need:-1, items:[["Pipevine Swallowtail Butterfly"],["Tiger Beetle"],["Yucca Moth"],["Assam Silk Moth"],["Monarch Caterpillar"]]},
+  {k:"Night_Insects_Offerings", t:"Night Insects", need:-1, items:[["Firefly"],["Cecropia Caterpillar"],["Centipede"],["Rove Beetle"],["Atlas Moth"]]},
+  {k:"Ocean_Critters_Offering", t:"Ocean Critters", need:-1, items:[["Cannonball Jellyfish"],["Hermit Crab"],["Sexy Shrimp"],["Sunflower Sea Star"],["Pom-pom Crab"]]},
+ ]},
+ {id:"advancedaltar", name:"Advanced Altar", offers:[
+  {k:"Barn_Animals_Offerings", t:"Barn Animals", need:-1, items:[["Milk"],["Goat Milk"],["Wool"],["Large Goat Milk"],["Large Wool"],["Large Milk",1,"s"]]},
+  {k:"Coop_Animals_Offerings", t:"Coop Animals", need:-1, items:[["Egg"],["Duck Egg"],["Large Egg"],["Large Duck Egg"]]},
+  {k:"Basic_Cooking_Offerings", t:"Basic Cooking", need:-1, items:[["Smoothie"],["Grilled Fish"],["Sunny-side-up Eggs"],["Tomato Soup"],["Onigiri"]]},
+  {k:"Artisan_Product_Offerings", t:"Artisan Products", need:-1, items:[["Any Mayonnaise"],["Any Fruit Juice"],["Any Butter"],["Any Dried Scavengeable"],["Any Pickle"]]},
+  {k:"Basic_Fruits_Offerings", t:"Fruits", need:5, items:[["Rambutan",1,"s"],["Durian",1,"s"],["Mango",1,"s"],["Dragonfruit",1,"s"],["Apple",1,"s"],["Lemon",1,"s"],["Almond",1,"s"],["Cocoa Bean",1,"s"]]},
+  {k:"Monster_Drop_Offerings", t:"Monster Drops", need:-1, items:[["Silky Fur",5],["Monster Essence",5],["Bat Wing",5],["Tough Meat",5],["Slime Goop",5]]},
+ ]},
+ {id:"rarealtar", name:"Rare Altar", offers:[
+  {k:"Quality_Crops_Offering", t:"Quality Crops", need:-1, items:[["Snowdrop",1,"o"],["Coffee Bean",1,"o"],["Garlic",1,"o"],["Cotton",1,"o"],["Cactus",1,"o"]]},
+  {k:"Precious_Gems_Collection", t:"Precious Gems", need:-1, items:[["Any uncommon gem",3],["Any rare gem",3],["Any super rare gem",3]]},
+  {k:"Rare_Cooked_Dish", t:"Rare Cooked Dishes", need:-1, reward:"Jamu recipe", items:[["Vegan Taco"],["Apple Pie"],["Serabi"],["Pad Thai"],["Es Cendol"]]},
+  {k:"Rare_Artisan_Offerings", t:"Rare Artisan", need:-1, items:[["Black Honey"],["Any Kimchi"],["Any Wine"],["Fermented Goat Cheese Wheel"],["White Truffle Oil"]]},
+  {k:"Rare_Animals_Offerings", t:"Rare Animal Products", need:-1, items:[["Black Truffle"],["Large Quail Egg"],["Large Llama Wool"],["Large Feather"],["Large Gesha Coffee Bean"]]},
+  {k:"Upgrade_Resouce", t:"Upgrade Resources", need:-1, items:[["Gold Bar",3],["Silver Bar",3],["Bronze Bar",3],["Gold Kelp Essence",3],["Silver Kelp Essence",3],["Bronze Kelp Essence",3]]},
+ ]},
+ {id:"divingaltar", name:"Diving Altar", offers:[
+  {k:"Location_Diving10m", t:"Diving 10 m", need:4, items:[["Bronze Kelp Essence",3],["Marinip",2],["Bluebell Blossom",2],["Twinshade Sealeaf",2]]},
+  {k:"Location_Diving20m", t:"Diving 20 m", need:4, items:[["Silver Kelp Essence",3],["Sproutfruit",3],["Helixpur Blossom",3],["Spring Sealeaf",3]]},
+  {k:"Location_Diving40m", t:"Diving 40 m", need:4, items:[["Gold Kelp Essence",5],["Pink Coralcap",5],["Petalia",5],["Red Reefbud",5]]},
+  {k:"Location_Diving50m", t:"Diving 50 m", need:4, items:[["Osmium Kelp Essence",5],["Goldglow",5],["Bluecole",5],["Mermoo Cheese Wheel",5]]},
+ ]},
+ {id:"guardianaltar", name:"Guardian Altar", offers:[
+  {k:"MasterSlime", t:"Master Slime", need:5, items:[["Any Artifact",4],["Any Fossil",4],["Plop Backpack"],["Hoarder Ring"],["Sturdy Computer"]]},
+  {k:"KingTan", t:"King Tan", need:4, items:[["Yellow Jam",8,"o"],["Red Jam",8,"o"],["Lychee",8,"o"],["Mango",8,"o"]]},
+  {k:"Pandazen", t:"Pandazen", need:4, items:[["Popiah",4],["Es Doger",4],["Herbed Tempeh",4],["Jackfruit Casserole",4]]},
+  {k:"T_Art_OfferingSavanna", t:"Savanna", need:5, items:[["Large Buffalo Milk",4,"o"],["Fermented Buffalo Cheese Wheel",4,"o"],["Large Century Ostrich Egg",4,"o"],["Large Ostrich Mayonnaise",4,"o"],["Any Dino Print",5]]},
+ ]},
+];
+// ---- Museum (coral.guide museum-checklist.json, file order) ----
+const MUSEUM = [
+ {id:"artifacts", name:"Artifacts", raw:"Silver_Spoon,Silver_Fork,Oversized_Spoon,Small_Figurine,Ships_Wheel,Rusty_anchor,Snow_Globe,Hammerstone,Stone_Hand_Axe,Harpoon,Rusty_spear,Terracotta_Soldier,Underwater_Tablet,Green_Mask,Red_Mask,Blue_Mask,Prehistoric_Bowl,Ancient_Map,Stone_Portrait,Bronze_Hammer,Ruby_Hairpin,Sky_Disk,Clay_Vessel,Ancient_Battery,Golden_Bell,Optical_Glass_Prism,Leather_Parchment,Wood_Carving,Shadow_Puppet,Golden_Keris,Ceramic_Vase,Chipped_Pottery_Jug,Ancient_Compass,Wooden_hand_fan,Bronze_Statue,Chipped_helmet,Unfinished_Clay_Statue,Beaded_Necklace,Metal_Boot,Gardonite_ring,Jasmine_Crown,Jade_Locket,Masquerade_Mask,Pearl_Chain,Gold_earring,Shell_anklet,Ancient_Rainbow_Armband,Stingray_Jewel_Plate,Terrarium_Pendant,Moonlight_Earrings,Dragons_Tears,Jade_Hair_Stick,Pearl_brooch,Carved_Ring_Holder,Dragons_trisula,Broken_Blade,Batik_Shawl,Royal_Bowl,Beach_snow_globe,Glass_Bowl,Flying_Dragon_Teapot,Town_Model,Gemstone_Bonsai,Gold_fish,Crystal_Ball,Gemstone_Hourglass,Gemstone_Candlestick,Magic_Lamp,Broken_Sundial,Salt_Lamp,Glass_Star,Silver_sandal,Cassete_Player,C_I__Jo,Dumbphone,Water_Bottle,Vinyl_record,Gemstone_beads"},
+ {id:"gems", name:"Gems", raw:"Emerald,Aquamarine,Amethyst,Topaz,Jade,Diamond,Opal,Peridot,Moonstone,Onyx,Morganite,Lepidolite,Fire_Agate,Quartz,Labradorite,Rose_Quartz,blue_quartz,Variscite,Azurite,Serpentine,Rhodonite,Amber,Garnet,Beryl,Diorite,Jasper,Granite,Marble,Crystal,Black_Opal,Red_Beryl,Pink_Crystal,Purple_Crystal,Pink_Diamond,Ruby"},
+ {id:"fossils", name:"Fossils", raw:"Brontosaurus_skull,Brontosaurus_leg,Tyrannosaurus_skull,Mosasaurus_torso,Triceratops_arm,Pterodactyl_leg,Brontosaurus_torso,Brontosaurus_hip,Brontosaurus_spine,Brontosaurus_tail,Tyrannosaurus_claw,Tyrannosaurus_leg,Tyrannosaurus_torso,Tyrannosaurus_spine,Tyrannosaurus_arm,Mosasaurus_skull,Mosasaurus_arm,Mosasaurus_leg,Mosasaurus_spine,Mosasaurus_tail,Triceratops_skull,Triceratops_torso,Triceratops_leg2,Triceratops_pelvis2,Triceratops_tail,Pterodactyl_skull,Pterodactyl_arm,Pterodactyl_spine,Pterodactyl_torso,Pterodactyl_tail,Velociraptor_skull,Velociraptor_torso,Velociraptor_spine,Velociraptor_claw,Velociraptor_leg,Velociraptor_tail,Plesiosaurus_skull,Plesiosaurus_torso,Plesiosaurus_spine,Plesiosaurus_leg,Plesiosaurus_pelvis,Plesiosaurus_tail,Mammoth_skull,Mammoth_torso,Mammoth_spine,Mammoth_claw,Mammoth_leg,Mammoth_tail,Stegosaurus_skull,Stegosaurus_torso,Stegosaurus_spine,Stegosaurus_claw,Stegosaurus_leg,Stegosaurus_tail,Gallimimus_skull,Gallimimus_torso,Gallimimus_spine,Gallimimus_claw,Gallimimus_pelvis,Gallimimus_tail"},
+ {id:"fish", name:"Fish", raw:"Salmon,Giant_Snakehead,Catfish,Flowerhorn,Tilapia,Red_king_arowana,Silver_arowana,Koi,Black_Phantom_Ghost_Fish,Gator_Gar,Rainbow_Fish,Tiger_Barb,Crayfish,Freshwater_eel,GoldFish,Snakehead,Bluegill,Arapaima,Zebra_Fish,Golden_Gar,Chub,Brown_trout,Cobia,Frogfish,Monkfish,Yellowtail,Tuna,Pufferfish,Ruby_Red_Dragonet,Yellow_Moray_Eel,Pink_Snapper,Squid,Octopus,Giant_Mudskipper,Grouper,Sea_Cucumber,Parrotfish,Polka-dot_batfish,Flameback_Fish,Giant_Stingray,Lobster,Lionfish,Damselfish,Mandarin,Archer,Angelfish,Blue_Tang,Clownfish,Firefish,Asian_Sheepshead,BoxFish,Mackerel,Yellowfin_tuna,Crab,Swordfish,Cod,Barracuda,Giant_Sea_Bass,Sardines,Red_Snapper,Green_Sawfish,Sturgeon,Sockeye_Salmon,Shrimp,Barramundi,Jellyfish,Great_White_Shark,Hammerhead,Raja_Ampat_Shark"},
+ {id:"insects", name:"Insects", raw:"Polyphemus_Moth,Ghost_Mantis,Tiger_Beetle,Harpalus_Beetle,Firefly,Pipevine_Swallowtail_Butterfly,Little_Wood_Satyr_Butterfly,Wolf_Spider,Yucca_Moth,Puss_Moth,Lady_Beetle,Violin_Beetle,Scarites_Beetle,Orchid_Mantis,Fly,Blue_Morpho_Butterfly,Crowned_Hairstreak_Butterfly,Widow_Spider,Assam_silk_moth,Dragonfly,Rove_Beetle,Soldier_Beetle,Praying_Mantis,Tiger_Swallowtail_Butterfly,Janetta_Forester_Butterfly,Tarantula,Atlas_Moth,Grasshopper,Ground_beetle,Leaf_Beetle,Monarch_Caterpillar,Spicebush_Swallowtail_Butterfly,Birdwing_Butterfly,Cecropia_Caterpillar,Maple_Leafcutter_Moth,Man-faced_stink_bug,Snail,Cricket,Wasp,Centipede,Moth,Magnolia_green_jumper,Pine_Sphinx,Luna_Moth,Striped_garden_caterpillar,Hickory_Horned_Devil,Western_Tiger_Swallowtail,Saddleback,Eastern_Black_Swallowtail,Gulf_Fritillary,Red_Admiral,Banded_woollybear,Olivewing_Butterfly"},
+ {id:"critters", name:"Sea Critters", raw:"Arrow_Crab,Common_Starfish,Flowerhat_Jellyfish,Tigertail_Seahorse,Jayakar_Seahorse,Skunk_Cleaner_Shrimp,Eight_armed_sea_star,Whelk,Mantis_Shrimp,Blue_Lobster,Giraffe_seahorse,Hermit_Crab,Mauve_Stinger_Jellyfish,CannonBall_Jellyfish,Upside-down_jellyfish,Pom-pom_crab,Sea_Slug,Venuss_flower_basket,Bloodbelly_comb_jellyfish,Pink_Meanie_Jellyfish,Atolla_jellyfish,White_Spotted_Jellyfish,Cauliflower_Jellyfish,Horseshoe_Crab,Blue_Crab,Sexy_Shrimp,Harlequin_Shrimp,Calico_Lobster,Split_Colored_Lobster,Cotton_Candy_Lobster,Sunflower_sea_star,Crown_of_Thorns_Starfish,Brisingida_Starfish,Red_Knob_Starfish,Blue_Starfish,Leafy_Sea_Dragon,Hedgehog_Seahorse,Shiho_Seahorse,Sea_Anemone,Chambered_nautilus,Giant_Isopod,Fuschia_flatworm,Ruby_seadragon,Stone_Crab,Yeti_Crab"},
+];
+const NAME_FIX = {Ships_Wheel:"Ship's Wheel", Dragons_Tears:"Dragon's Tears", Dragons_trisula:"Dragon's Trisula", Cassete_Player:"Cassette Player", C_I__Jo:"C.I. Jo", Triceratops_leg2:"Triceratops Leg", Triceratops_pelvis2:"Triceratops Pelvis", Venuss_flower_basket:"Venus's Flower Basket", GoldFish:"Goldfish", BoxFish:"Boxfish", CannonBall_Jellyfish:"Cannonball Jellyfish", Sardines:"Sardine", Hammerhead:"Hammerhead Shark", blue_quartz:"Blue Quartz"};
+const prettify = r => NAME_FIX[r] || r.split("_").map(w => w.split("-").map(p => p ? p[0].toUpperCase() + p.slice(1) : p).join("-")).join(" ");
+
+// ---- Fish spawn info ----
+// [museum raw name, seasons (s=spring u=summer f=fall w=winter; "" = not in data), season note, where, time, weather, rarity, source]
+// source "cg" = coral.guide fish.json (v1.3); "wiki" = Coral Island wiki fish table (no season data there)
+const FISH = [
+ ["Salmon","sfw","","Estuary, Lake Temple, River Farm, River Forest, River Town","Any time","Any weather","Uncommon","cg"],
+ ["Giant_Snakehead","uf","","River Forest, River Town","Morning, evening, night","Sunny, windy","Uncommon","cg"],
+ ["Catfish","su","","Rice Field, Pond, River Forest","Evening, night","Rain, storm","Common","cg"],
+ ["Flowerhorn","sufw","","Cave Entrance","Any time","Any weather","Uncommon","cg"],
+ ["Tilapia","sufw","","Pond, Lake Temple, Earth mine","Any time","Any weather","Common","cg"],
+ ["Red_king_arowana","sufw","Mines: Fall 22–28 only. Savannah: any season","Fire, Air and Water mines, Lava cavern; Savannah","Afternoon, evening (mines); any (Savannah)","Rain, windy, storm (mines); any (Savannah)","Legendary","cg"],
+ ["Silver_arowana","w","","Earth, Water and Air mines","Morning, afternoon","Any weather","Uncommon","cg"],
+ ["Koi","su","","River Town, Cave Entrance, Lake Temple","Morning, afternoon","Sunny, rain, windy, storm","Rare","cg"],
+ ["Black_Phantom_Ghost_Fish","s","","River Farm, River Forest, Lake Temple","Any time","Sunny, windy","Common","cg"],
+ ["Gator_Gar","s","","River Forest, Lake Temple","Morning, afternoon","Rain, storm","Rare","cg"],
+ ["Rainbow_Fish","sufw","","River Town, Deep Forest","Any time","Any weather","Uncommon","cg"],
+ ["Tiger_Barb","f","","Pond, Lake Temple","Any time","Sunny, windy","Common","cg"],
+ ["Crayfish","sufw","","Pond, River Farm, Deep Forest, Savannah","Any time","Any weather","Common","cg"],
+ ["Freshwater_eel","sufw","","Estuary, River Farm, Water mine","Any time","Any weather","Common","cg"],
+ ["GoldFish","uf","","River Farm, River Forest, Lake Temple","Any time","Sunny, rain, windy, storm","Uncommon","cg"],
+ ["Snakehead","suf","","Lake Temple","Morning, night","Rain, storm","Common","cg"],
+ ["Bluegill","u","","Pond, River Town, Lake Temple","Afternoon, evening, night","Sunny, rain, windy, storm","Common","cg"],
+ ["Arapaima","sufw","","River Forest, Deep Forest, Savannah","Any time","Any weather","Rare","cg"],
+ ["Zebra_Fish","sufw","","Rice Field, River Farm, River Forest","Any time","Any weather","Common","cg"],
+ ["Golden_Gar","sufw","River Farm and Lake Temple: Summer only. Savannah: any season","River Farm, Lake Temple, Savannah","Any time","Rain, storm (river, lake); any (Savannah)","Rare","cg"],
+ ["Chub","uw","","River Forest, River Town, Lake Temple","Any time","Any weather","Common","cg"],
+ ["Brown_trout","sufw","","River Farm","Afternoon, evening, night","Any weather","Common","cg"],
+ ["Cobia","sufw","Estuary and Ocean Dock: Spring to Fall. Water mine: any season","Estuary, Ocean Dock, Water mine","Morning, afternoon (outdoors); any (mine)","Sunny, rain, windy, storm (outdoors); any (mine)","Uncommon","cg"],
+ ["Frogfish","sufw","","Estuary, Ocean Lookout","Any time","Rain, snow, blizzard, storm","Uncommon","cg"],
+ ["Monkfish","s","Ocean Forest: Spring 1–14. Deep Forest is also listed","Ocean Forest, Deep Forest","Evening, night","Sunny, rain, windy, storm","Legendary","cg"],
+ ["Yellowtail","sufw","","Ocean Dock, Fire mine","Any time","Rain, snow, blizzard, storm (dock); any (mine)","Common","cg"],
+ ["Tuna","sufw","Ocean Dock and Lookout: Fall only. Fire mine: any season","Ocean Dock, Ocean Lookout, Fire mine","Afternoon, evening (ocean); any (mine)","Sunny, rain, windy, storm (ocean); any (mine)","Rare","cg"],
+ ["Pufferfish","sufw","Ocean Dock and Lookout: Winter only. Air mine: any season","Ocean Dock, Ocean Lookout, Air mine","Morning, afternoon (ocean); any (mine)","Any weather","Uncommon","cg"],
+ ["Ruby_Red_Dragonet","sufw","","Ocean Beach, Cave Entrance","Any time","Any weather","Common","cg"],
+ ["Yellow_Moray_Eel","sufw","Ocean Beach: Spring 15–28 and Summer 15–28. Deep Forest: any season","Ocean Beach, Deep Forest","Night (beach); any (Deep Forest)","Sunny, rain, windy, storm (beach); any (Deep Forest)","Legendary","cg"],
+ ["Pink_Snapper","sufw","Ocean Dock: Spring and Winter. Air mine: any season","Ocean Dock, Air mine","Any time","Any weather","Common","cg"],
+ ["Squid","uf","","Ocean Lookout","Evening, night","Sunny, rain, windy, storm","Common","cg"],
+ ["Octopus","suf","","Ocean Dock, Ocean Beach","Evening, night","Sunny, rain, windy, storm","Uncommon","cg"],
+ ["Giant_Mudskipper","sufw","Estuary and Rice Field: Fall and Winter. Lava cavern: any season","Estuary, Rice Field, Lava cavern","Any time","Any weather","Uncommon","cg"],
+ ["Grouper","suf","","Estuary, Ocean Dock, Cave Entrance","Any time","Sunny, rain, windy, storm","Uncommon","cg"],
+ ["Sea_Cucumber","sufw","","Ocean Forest, Deep Forest","Any time","Any weather","Rare","cg"],
+ ["Parrotfish","ufw","","Ocean Beach, Ocean Lookout","Morning, afternoon","Any weather","Common","cg"],
+ ["Polka-dot_batfish","sufw","","Ocean Forest, Air mine","Any time","Rain, snow, blizzard, storm (forest); any (mine)","Uncommon","cg"],
+ ["Flameback_Fish","sufw","","Ocean Dock","Afternoon, evening, night","Rain, snow, blizzard, storm","Uncommon","cg"],
+ ["Giant_Stingray","sufw","River Forest: Spring 15–28 and Summer 15–28. Deep Forest: any season","River Forest, Deep Forest","Afternoon, evening (river); any (Deep Forest)","Sunny, windy (river); any (Deep Forest)","Legendary","cg"],
+ ["Lobster","sufw","","Ocean Beach, Fire mine","Any time","Any weather","Uncommon","cg"],
+ ["Lionfish","su","","Ocean Beach, Ocean Forest","Morning, afternoon, evening","Sunny, rain, windy, storm","Uncommon","cg"],
+ ["Damselfish","sufw","","Ocean Beach","Morning, afternoon, evening","Sunny, snow, blizzard, windy","Rare","cg"],
+ ["Mandarin","sufw","","Ocean Forest","Evening, night","Sunny, snow, blizzard, windy","Rare","cg"],
+ ["Archer","sufw","River Farm and Cave Entrance: Fall and Winter. Savannah: any season","River Farm, Cave Entrance, Savannah","Any time","Any weather","Uncommon","cg"],
+ ["Angelfish","sufw","","River Forest, Deep Forest","Morning, afternoon, evening","Any weather","Uncommon","cg"],
+ ["Blue_Tang","sufw","Ocean Beach: Spring, Fall and Winter. Earth mine: any season","Ocean Beach, Earth mine","Any time","Any weather","Common","cg"],
+ ["Clownfish","su","","Ocean Dock","Afternoon, evening, night","Sunny, windy","Common","cg"],
+ ["Firefish","sufw","","Ocean Forest","Any time","Any weather","Common","cg"],
+ ["Asian_Sheepshead","w","","Ocean Forest","Any time","Any weather","Rare","cg"],
+ ["BoxFish","sw","","Ocean Lookout","Afternoon, evening, night","Any weather","Common","cg"],
+ ["Mackerel","sufw","","Ocean Lookout, Ocean Forest, Lava cavern","Any time","Any weather","Common","cg"],
+ ["Yellowfin_tuna","w","","Ocean Dock, Ocean Beach","Afternoon, evening","Rain, snow, blizzard, storm","Rare","cg"],
+ ["Crab","sufw","","Rice Field, River Forest, Ocean Lookout","Any time","Any weather","Uncommon","cg"],
+ ["Swordfish","sw","","Ocean Dock","Any time","Any weather","Rare","cg"],
+ ["Cod","ufw","","Estuary","Evening, night","Sunny, snow, blizzard, windy","Common","cg"],
+ ["Barracuda","suf","","Ocean Beach, Ocean Dock","Morning, afternoon, evening","Sunny, rain, windy, storm","Uncommon","cg"],
+ ["Giant_Sea_Bass","f","Ocean Forest: Fall 1–7. Deep Forest: Fall","Ocean Forest, Deep Forest","Morning, night","Sunny, rain, windy, storm","Legendary","cg"],
+ ["Sardines","sufw","","Beach Ocean, Lighthouse, Lava cavern","16:00–02:00","Any weather","","mix"],
+ ["Red_Snapper","sufw","","Town River, Estuary, Temple Lake","All day","Any weather","","mix"],
+ ["Green_Sawfish","w","Winter 1–28","Estuary","12:00–02:00","Rain, storm, snow, blizzard","","mix"],
+ ["Sturgeon","sufw","","Garden Lane River, Temple Lake","16:00–02:00","Rain, storm, snow, blizzard","","mix"],
+ ["Sockeye_Salmon","fw","In Fall also Garden Lane, Forest and Town rivers","Estuary, Temple Lake","All day","Any weather","","mix"],
+ ["Shrimp","sufw","","Pond","","Any weather","","mix"],
+ ["Barramundi","sf","","Town River, Estuary","All day","Sunny, rain, windy, storm","","mix"],
+ ["Jellyfish","s","","Beach Ocean, Lighthouse","16:00–02:00","Sunny, windy","","mix"],
+ ["Great_White_Shark","u","Summer 1–14 only","Town Dock Ocean","06:00–16:00","Sunny, windy","","mix"],
+ ["Hammerhead","fw","Fall 8–21 and Winter 8–21 only","Lighthouse","06:00–12:00, 16:00–02:00","Rain, storm, snow, blizzard","","mix"],
+ ["Raja_Ampat_Shark","u","Summer 1–14 only","Lighthouse","16:00–02:00","Sunny, rain, storm, windy","","mix"],
+];
+const FISH_INFO = Object.fromEntries(FISH.map(f => [f[0], {s:f[1], note:f[2], where:f[3], time:f[4], weather:f[5], rarity:f[6], src:f[7]}]));
+const normName = n => n.toLowerCase().replace(/[^a-z]/g, "");
+
+// ---- Insect spawn info (coral.guide bugs-and-insects.json, v1.3) ----
+const INS = [
+ ["Maple_Leafcutter_Moth","uf","Garden Lane, Beach, Lake, Woodlands","Any time","Sunny, rain, windy","Rare"],
+ ["Polyphemus_Moth","su","Beach, Town, Lookout","Evening, night","Rain, storm, windy","Common"],
+ ["Moth","sufw","Garden Lane, Town, Vineyard, Hot Spring","Evening, night","Sunny, rain, storm","Common"],
+ ["Atlas_Moth","fw","Forest","Evening, night","Sunny, windy","Super Rare"],
+ ["Luna_Moth","suf","Town, Forest, Deep Forest","Any time","Sunny, windy","Rare"],
+ ["Yucca_Moth","su","Beach, Town, Hot Spring","Morning, afternoon","Sunny, rain, storm, windy","Rare","Also in the Savannah"],
+ ["Puss_Moth","su","Lake, Forest, Vineyard, Hot Spring","Any time","Sunny, rain, storm, windy","Uncommon"],
+ ["Assam_silk_moth","sf","Garden Lane, Lookout, Vineyard, Hot Spring, Forest","Morning, afternoon","Sunny, rain, windy","Common"],
+ ["Ghost_Mantis","suf","Garden Lane, Forest","Any time","Sunny, rain, storm, windy","Rare"],
+ ["Tiger_Beetle","s","Garden Lane, Beach, Lake, Woodlands, Lookout, Town","Morning, afternoon","Sunny, rain, storm, windy","Rare"],
+ ["Harpalus_Beetle","sf","Town, Lookout, Forest, Vineyard, Hot Spring","Morning, afternoon","Sunny, rain, storm, windy","Uncommon"],
+ ["Soldier_Beetle","uf","Garden Lane, Beach, Lake, Woodlands, Town, Lookout, Hot Spring","Any time","Sunny, rain, storm, windy","Common"],
+ ["Firefly","su","Garden Lane, Lake, Woodlands, Forest, Deep Forest","Evening, night","Sunny","Uncommon"],
+ ["Fly","sufw","Garden Lane, Beach, Lake, Woodlands, Town, Lookout, Dump","Morning, afternoon","Sunny, rain, storm, windy","Common"],
+ ["Dragonfly","uf","Beach, Lake, Town","Morning, afternoon","Sunny, rain, storm, windy","Uncommon"],
+ ["Man-faced_stink_bug","uf","Lookout, Forest, Deep Forest","Evening, night","Sunny, windy","Common"],
+ ["Wasp","sufw","Vineyard, Hot Spring, Forest","Any time","Sunny","Common"],
+ ["Cricket","su","Garden Lane, Beach, Lake, Woodlands, Lookout, Vineyard, Forest","Evening, night","Sunny, rain, windy","Common"],
+ ["Magnolia_green_jumper","su","Lake, Forest","Any time","Rain, storm","Rare"],
+ ["Pipevine_Swallowtail_Butterfly","sufw","Garden Lane, Lake, Woodlands, Forest","Morning, afternoon","Sunny, rain, storm, windy","Uncommon"],
+ ["Little_Wood_Satyr_Butterfly","su","Garden Lane, Lake, Woodlands","Morning, afternoon","Sunny, rain, storm, windy","Common"],
+ ["Blue_Morpho_Butterfly","u","Lake, Forest","Morning, afternoon","Windy","Legendary"],
+ ["Crowned_Hairstreak_Butterfly","u","Beach, Forest","Any time","Sunny","Legendary"],
+ ["Tiger_Swallowtail_Butterfly","suf","Woodlands, Vineyard, Hot Spring, Forest","Morning, afternoon","Sunny, windy","Common"],
+ ["Janetta_Forester_Butterfly","fw","Vineyard, Hot Spring, Forest","Morning, afternoon","Sunny, windy","Common"],
+ ["Olivewing_Butterfly","fw","Lake, Woodlands, Forest, Deep Forest","Any time","Sunny, windy","Uncommon"],
+ ["Spicebush_Swallowtail_Butterfly","sw","Garden Lane, Beach, Woodlands","Morning, afternoon","Sunny, rain, storm, windy","Rare"],
+ ["Birdwing_Butterfly","w","Lookout, Forest","Morning, afternoon","Sunny, rain","Super Rare"],
+ ["Red_Admiral","suf","Garden Lane, Forest, Vineyard","Morning, afternoon","Sunny, rain, windy","Common"],
+ ["Western_Tiger_Swallowtail","uw","Garden Lane, Lake, Town, Hot Spring","Morning, afternoon","Sunny, rain, storm","Uncommon"],
+ ["Eastern_Black_Swallowtail","f","Beach, Lake, Lookout, Forest, Hot Spring","Evening, night","Rain, storm","Rare"],
+ ["Gulf_Fritillary","uf","Garden Lane, Woodlands, Lookout, Vineyard","Any time","Sunny, rain, storm, windy","Common"],
+ ["Pine_Sphinx","suf","Town, Lookout, Beach","Any time","Sunny, rain, storm, windy","Common"],
+ ["Cecropia_Caterpillar","su","Garden Lane, Lake, Lookout, Forest, Vineyard","Evening, night","Sunny, windy","Rare"],
+ ["Striped_garden_caterpillar","suf","Garden Lane, Beach, Hot Spring","Any time","Sunny, windy","Uncommon"],
+ ["Monarch_Caterpillar","fw","Garden Lane, Beach, Woodlands","Morning, afternoon","Sunny, snow, rain, windy","Super Rare"],
+ ["Snail","suf","Beach, Lake, Woodlands, Town, Vineyard, Forest","Any time","Rain, storm, windy","Common"],
+ ["Centipede","sufw","Garden Lane, Beach, Woodlands, Town, Forest, Vineyard","Evening, night","Sunny, windy","Uncommon"],
+ ["Hickory_Horned_Devil","su","Woodlands, Lookout, Forest","Evening, night","Sunny, rain, storm","Uncommon"],
+ ["Saddleback","uf","Beach, Lookout, Forest","Any time","Sunny, rain, storm, windy","Common"],
+ ["Banded_woollybear","fw","Lake, Woodlands, Town, Lookout","Morning, afternoon","Sunny, snow, windy, blizzard","Common","Also in the Savannah"],
+ ["Lady_Beetle","suf","Garden Lane, Town, Lookout, Hot Spring, Deep Forest","Morning, afternoon","Sunny, windy","Common"],
+ ["Violin_Beetle","uf","Woodlands, Forest, Vineyard","Any time","Sunny, windy","Uncommon"],
+ ["Scarites_Beetle","su","Garden Lane, Woodlands, Vineyard, Forest","Evening, night","Sunny, windy","Common"],
+ ["Rove_Beetle","fw","Garden Lane, Vineyard","Evening, night","Sunny, rain, storm","Rare"],
+ ["Ground_beetle","fw","Garden Lane, Lake, Town, Lookout, Vineyard","Evening, night","Any weather","Common"],
+ ["Leaf_Beetle","sw","Forest, Vineyard, Hot Spring, Deep Forest","Any time","Sunny, windy","Uncommon"],
+ ["Wolf_Spider","u","Forest, Vineyard, Hot Spring","Evening, night","Sunny, rain, storm, windy","Super Rare"],
+ ["Widow_Spider","sf","Beach, Woodlands, Town, Lookout","Evening, night","Sunny, windy","Rare"],
+ ["Tarantula","f","Beach, Town","Evening, night","Sunny","Legendary"],
+ ["Praying_Mantis","sfw","Garden Lane, Beach, Forest","Morning, afternoon","Sunny, rain, windy","Uncommon","Also in the Savannah"],
+ ["Orchid_Mantis","uf","Garden Lane, Forest, Deep Forest","Morning, afternoon","Sunny, windy","Super Rare","Also in the Savannah"],
+ ["Grasshopper","fw","Garden Lane, Beach, Lake, Woodlands, Forest","Any time","Any weather","Uncommon"],
+];
+const INSECT_INFO = Object.fromEntries(INS.map(r => [r[0], {s:r[1], where:r[2], time:r[3], weather:r[4], rarity:r[5], note:r[6]||"", src:"cg"}]));
+const INFO = {fish: FISH_INFO, insects: INSECT_INFO};
+const INFO_BY_NAME = {};
+for (const [raw, v] of Object.entries(FISH_INFO)) INFO_BY_NAME[normName(prettify(raw))] = v;
+for (const [raw, v] of Object.entries(INSECT_INFO)) INFO_BY_NAME[normName(prettify(raw))] = v;
+
+// ---- Recipes (coral.guide cooking-recipes.json, v1.3) ----
+const RECIPES = {
+ "Smoothie": {tool:"Blender", ing:["Any fruit"]},
+ "Grilled Fish": {tool:"Grill", ing:["Any fish"]},
+ "Sunny-side-up Eggs": {tool:"Skillet", ing:["Any egg"], unlock:"Ranching mastery level 1"},
+ "Vegan Taco": {tool:"Skillet", ing:["Any vegetable","Tortilla","Kiracha Sauce"]},
+ "Apple Pie": {tool:"Oven", ing:["Any honey","Apple","Wheat Flour","Butter or Large Butter"]},
+ "Serabi": {tool:"Skillet", ing:["Any coconut","Gourmet Salt","Rice Flour","Sugar"]},
+ "Pad Thai": {tool:"Frying Pan", ing:["Any vegetable","Wheat Flour","Shrimp","Lemon"]},
+ "Popiah": {tool:"Skillet", ing:["Bamboo Shoot","Carrot","Shrimp or Crab"]},
+ "Herbed Tempeh": {tool:"Grill", ing:["Tempeh","Gourmet Salt","Basil"]},
+ "Jackfruit Casserole": {tool:"Oven", ing:["Any mushroom","Any milk","Jackfruit","Potato"]},
+};
+for (const [n, r] of Object.entries(RECIPES)){ r.kind = "recipe"; INFO_BY_NAME[normName(n)] = r; }
+
+// ---- Sea critter info (coral.guide ocean-critters.json, v1.3) ----
+const CRIT = [["Mauve_Stinger_Jellyfish", "uf", "10m dive: Jellyfish Area", "Evening, night", "Common"], ["Bloodbelly_comb_jellyfish", "sufw", "50m dive: Zone1, Zone4", "Any time", "Uncommon"], ["Pink_Meanie_Jellyfish", "w", "50m dive: Orchestra Area", "Any time", "Super Rare"], ["Atolla_jellyfish", "suf", "40m dive: Orchestra Area, Yoga Retreat Area", "Any time", "Rare"], ["Flowerhat_Jellyfish", "suw", "20m dive: Seahorse Area, Orchestra Area", "Evening, night", "Uncommon"], ["White_Spotted_Jellyfish", "fw", "20m dive: Herding Area", "Evening, night", "Common"], ["Cauliflower_Jellyfish", "uf", "40m dive: Orchestra Area, Zone5", "Any time", "Uncommon"], ["CannonBall_Jellyfish", "suf", "10m dive: Jellyfish Area", "Any time", "Common"], ["Upside-down_jellyfish", "sufw", "10m dive: Jellyfish Area", "Morning, afternoon", "Common"], ["Hermit_Crab", "sufw", "20m dive: Kelp Forest Area, Herding Area", "Any time", "Common"], ["Horseshoe_Crab", "su", "40m dive: Zone1, Zone3", "Evening, night", "Common"], ["Arrow_Crab", "sw", "10m dive: Natural Area, Orchestra Area", "Evening, night", "Common"], ["Blue_Crab", "suf", "40m dive: Zone1, Mid Area", "Evening, night", "Uncommon"], ["Pom-pom_crab", "su", "10m dive: Orchestra Area, Herding Area", "Any time", "Uncommon"], ["Sexy_Shrimp", "sufw", "40m dive: Zone1, Mid Area", "Morning, afternoon", "Common"], ["Mantis_Shrimp", "sw", "20m dive: Herding Area", "Any time", "Rare"], ["Skunk_Cleaner_Shrimp", "sufw", "20m dive: Herding Area, Kelp Forest Area", "Any time", "Common"], ["Harlequin_Shrimp", "uw", "50m dive: Mid Area, Orchestra Area", "Evening, night", "Uncommon"], ["Yeti_Crab", "su", "10m dive: Natural Area, Herding Area, Orchestra Area", "Evening, night", "Common"], ["Blue_Lobster", "fw", "10m dive: Natural Area, Herding Area", "Evening, night", "Rare"], ["Calico_Lobster", "ufw", "20m dive: Kelp Forest Area", "Evening, night", "Super Rare"], ["Split_Colored_Lobster", "sw", "40m dive: Yoga Retreat Area", "Evening, night", "Super Rare"], ["Cotton_Candy_Lobster", "f", "50m dive: Zone5", "Evening, night", "Legendary"], ["Common_Starfish", "sufw", "10m dive: Herding Area, Natural Area", "Any time", "Common"], ["Eight_armed_sea_star", "sufw", "20m dive: Herding Area, Orchestra Area", "Morning, afternoon", "Uncommon"], ["Sunflower_sea_star", "su", "50m dive: Zone1, Zone5", "Any time", "Uncommon"], ["Crown_of_Thorns_Starfish", "suw", "40m dive: Mid Area, Zone5", "Any time", "Rare"], ["Brisingida_Starfish", "fw", "20m dive: Herding Area, Orchestra Area", "Any time", "Uncommon"], ["Red_Knob_Starfish", "uw", "50m dive: Zone1, Orchestra Area", "Any time", "Uncommon"], ["Blue_Starfish", "suf", "50m dive: Mid Area, Zone4", "Evening, night", "Common"], ["Leafy_Sea_Dragon", "f", "50m dive: Zone4", "Morning, afternoon", "Super Rare"], ["Tigertail_Seahorse", "sfw", "10m dive: Jellyfish Area, Herding Area", "Evening, night", "Common"], ["Hedgehog_Seahorse", "sufw", "40m dive: Zone3, Yoga Retreat Area", "Any time", "Uncommon"], ["Giraffe_seahorse", "sufw", "40m dive: Orchestra Area, Mid Area, Yoga Retreat Area", "Any time", "Common"], ["Shiho_Seahorse", "fw", "50m dive: Zone1, Zone4", "Any time", "Rare"], ["Jayakar_Seahorse", "sf", "20m dive: Seahorse Area, Orchestra Area", "Any time", "Common"], ["Sea_Anemone", "sufw", "50m dive: Orchestra Area, Zone5", "Any time", "Common"], ["Sea_Slug", "sufw", "10m dive: Natural Area, Orchestra Area", "Any time", "Uncommon"], ["Whelk", "su", "20m dive: Seahorse Area, Kelp Forest Area, Orchestra Area", "Any time", "Common"], ["Chambered_nautilus", "s", "40m dive: Zone5", "Morning, afternoon", "Legendary"], ["Giant_Isopod", "uf", "50m dive: Zone1, Mid Area", "Morning, afternoon", "Rare"], ["Fuschia_flatworm", "ufw", "40m dive: Zone3, Zone5", "Morning, afternoon", "Rare"], ["Venuss_flower_basket", "sfw", "10m dive: Orchestra Area", "Any time", "Super Rare"], ["Ruby_seadragon", "uw", "20m dive: Seahorse Area", "Morning, afternoon", "Rare"], ["Stone_Crab", "sfw", "50m dive: Mid Area, Zone5", "Evening, night", "Common"]];
+const CRITTER_INFO = Object.fromEntries(CRIT.map(r => [r[0], {s:r[1], where:r[2], time:r[3], weather:"", rarity:r[4], note:"", src:"cg"}]));
+INFO.critters = CRITTER_INFO;
+for (const [raw, v] of Object.entries(CRITTER_INFO)) INFO_BY_NAME[normName(prettify(raw))] = v;
+Object.assign(RECIPES, {
+ "Tomato Soup": {kind:"recipe", tool:"Pot", ing:["Tomato"]},
+ "Onigiri": {kind:"recipe", tool:"Seasoning Set", ing:["Rice"]},
+ "Es Cendol": {kind:"recipe", tool:"Ceramic Bowl", ing:["Rice Flour","Syrup","Any coconut"]},
+ "Es Doger": {kind:"recipe", tool:"Ceramic Bowl", ing:["Syrup","Sweet Potato","Any coconut","Any milk"]},
+ "Jamu": {kind:"recipe", tool:"Blender", ing:["Any honey","Ginseng","Ginger"]},
+});
+for (const n of ["Tomato Soup","Onigiri","Es Cendol","Es Doger","Jamu"]) INFO_BY_NAME[normName(n)] = RECIPES[n];
+
+// ---- Artifact, gem and fossil sources (coral.guide item files, v1.3). Chance = % per opened coffer/geode/node ----
+const DROPS = {"Silver_Spoon":{"sell":1100,"src":[["Pirate Coffer","1.41%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Silver_Fork":{"sell":1100,"src":[["Pirate Coffer","1.41%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Oversized_Spoon":{"sell":770,"src":[["Pirate Coffer","2.82%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Small_Figurine":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Ships_Wheel":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Rusty_anchor":{"sell":550,"src":[["Pirate Coffer","4.23%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Snow_Globe":{"sell":465,"src":[["Ornate Coffer","3.75%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 1165 (max 5 per year)."},"Hammerstone":{"sell":105,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Stone_Hand_Axe":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Harpoon":{"sell":105,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Rusty_spear":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Terracotta_Soldier":{"sell":651,"src":[["Ornate Coffer","2.5%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Underwater_Tablet":{"sell":330,"src":[["Pirate Coffer","5.63%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Green_Mask":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Red_Mask":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Blue_Mask":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Prehistoric_Bowl":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Ancient_Map":{"sell":651,"src":[["Ornate Coffer","2.5%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Stone_Portrait":{"sell":735,"src":[["Marble Coffer","2.35%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Bronze_Hammer":{"sell":500,"src":[["Coffer","2.65%","at the Blacksmith"]],"other":""},"Ruby_Hairpin":{"sell":930,"src":[["Ornate Coffer","1.25%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Sky_Disk":{"sell":525,"src":[["Marble Coffer","3.53%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Clay_Vessel":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Ancient_Battery":{"sell":700,"src":[["Coffer","1.77%","at the Blacksmith"]],"other":""},"Golden_Bell":{"sell":500,"src":[["Coffer","2.65%","at the Blacksmith"]],"other":""},"Optical_Glass_Prism":{"sell":465,"src":[["Ornate Coffer","3.75%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Leather_Parchment":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Wood_Carving":{"sell":525,"src":[["Marble Coffer","3.53%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Shadow_Puppet":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Golden_Keris":{"sell":700,"src":[["Coffer","1.77%","at the Blacksmith"]],"other":""},"Ceramic_Vase":{"sell":1050,"src":[["Marble Coffer","1.18%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Chipped_Pottery_Jug":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Ancient_Compass":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Wooden_hand_fan":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Bronze_Statue":{"sell":770,"src":[["Pirate Coffer","2.82%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Chipped_helmet":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Unfinished_Clay_Statue":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Beaded_Necklace":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Metal_Boot":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Gardonite_ring":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Jasmine_Crown":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Jade_Locket":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Masquerade_Mask":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Pearl_Chain":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gold_earring":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Shell_anklet":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Ancient_Rainbow_Armband":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Stingray_Jewel_Plate":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Terrarium_Pendant":{"sell":500,"src":[["Coffer","2.65%","at the Blacksmith"]],"other":""},"Moonlight_Earrings":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Dragons_Tears":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Jade_Hair_Stick":{"sell":500,"src":[["Shimmering Coffer","3.61%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Pearl_brooch":{"sell":500,"src":[["Shimmering Coffer","3.61%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Carved_Ring_Holder":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Dragons_trisula":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Broken_Blade":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Batik_Shawl":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Royal_Bowl":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Beach_snow_globe":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":"Beach Clean Up festival shop sells it for 225 (limit 1)."},"Glass_Bowl":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Flying_Dragon_Teapot":{"sell":1000,"src":[["Shimmering Coffer","1.2%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Town_Model":{"sell":550,"src":[["Pirate Coffer","4.23%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Gemstone_Bonsai":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gold_fish":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Crystal_Ball":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gemstone_Hourglass":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gemstone_Candlestick":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Magic_Lamp":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Broken_Sundial":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Salt_Lamp":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Glass_Star":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Silver_sandal":{"sell":279,"src":[["Ornate Coffer","5%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Cassete_Player":{"sell":150,"src":[["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"C_I__Jo":{"sell":300,"src":[["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Dumbphone":{"sell":150,"src":[["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Water_Bottle":{"sell":300,"src":[["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Vinyl_record":{"sell":300,"src":[["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gemstone_beads":{"sell":150,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Emerald":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Aquamarine":{"sell":130,"src":[["Water Geode","8.2%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Amethyst":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Topaz":{"sell":149,"src":[["Fire Geode","7.69%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Jade":{"sell":218,"src":[["Wind Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Diamond":{"sell":407,"src":[["Water Geode","3.28%","at the Blacksmith"],["Mystery Geode","1.16%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 2000 (max 3 per year)."},"Opal":{"sell":324,"src":[["Fire Geode","4.62%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Peridot":{"sell":290,"src":[["Wind Geode","4.84%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Moonstone":{"sell":195,"src":[["Water Geode","6.56%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Onyx":{"sell":149,"src":[["Fire Geode","7.69%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Morganite":{"sell":176,"src":[["Earth Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Lepidolite":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Fire_Agate":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Quartz":{"sell":130,"src":[["Water Geode","8.2%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Labradorite":{"sell":324,"src":[["Fire Geode","4.62%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Rose_Quartz":{"sell":223,"src":[["Fire Geode","6.15%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 1100 (max 3 per year)."},"blue_quartz":{"sell":195,"src":[["Water Geode","6.56%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Variscite":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Azurite":{"sell":260,"src":[["Water Geode","4.92%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Serpentine":{"sell":218,"src":[["Wind Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Rhodonite":{"sell":149,"src":[["Fire Geode","7.69%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Amber":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Garnet":{"sell":223,"src":[["Fire Geode","6.15%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Beryl":{"sell":272,"src":[["Water Geode","4.92%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Diorite":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Jasper":{"sell":234,"src":[["Earth Geode","4.84%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Granite":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Marble":{"sell":176,"src":[["Earth Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Crystal":{"sell":130,"src":[["Water Geode","8.2%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Black_Opal":{"sell":351,"src":[["Earth Geode","3.23%","at the Blacksmith"],["Mystery Geode","1.16%","at the Blacksmith"]],"other":""},"Red_Beryl":{"sell":527,"src":[["Earth Geode","1.61%","at the Blacksmith"],["Mystery Geode","0.58%","at the Blacksmith"]],"other":""},"Pink_Crystal":{"sell":176,"src":[["Earth Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 900 (max 5 per year)."},"Purple_Crystal":{"sell":223,"src":[["Fire Geode","6.15%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Pink_Diamond":{"sell":653,"src":[["Wind Geode","1.61%","at the Blacksmith"],["Mystery Geode","0.58%","at the Blacksmith"]],"other":""},"Ruby":{"sell":486,"src":[["Fire Geode","3.08%","at the Blacksmith"],["Mystery Geode","1.16%","at the Blacksmith"]],"other":""},"Brontosaurus_skull":{"sell":625,"src":[["Fossil Node (Brontosaurus/T. rex kind)","1.45%","at the Lab"]],"other":""},"Brontosaurus_leg":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","7.25%","at the Lab"]],"other":""},"Tyrannosaurus_skull":{"sell":625,"src":[["Fossil Node (Brontosaurus/T. rex kind)","2.9%","at the Lab"]],"other":""},"Mosasaurus_torso":{"sell":255,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","4.35%","at the Lab"]],"other":""},"Triceratops_arm":{"sell":110,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Pterodactyl_leg":{"sell":100,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Brontosaurus_torso":{"sell":270,"src":[["Fossil Node (Brontosaurus/T. rex kind)","4.35%","at the Lab"]],"other":""},"Brontosaurus_hip":{"sell":195,"src":[["Fossil Node (Brontosaurus/T. rex kind)","5.8%","at the Lab"]],"other":""},"Brontosaurus_spine":{"sell":410,"src":[["Fossil Node (Brontosaurus/T. rex kind)","2.9%","at the Lab"]],"other":""},"Brontosaurus_tail":{"sell":180,"src":[["Fossil Node (Brontosaurus/T. rex kind)","5.8%","at the Lab"]],"other":""},"Tyrannosaurus_claw":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","7.25%","at the Lab"]],"other":""},"Tyrannosaurus_leg":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","1.45%","at the Lab"]],"other":""},"Tyrannosaurus_torso":{"sell":270,"src":[["Fossil Node (Brontosaurus/T. rex kind)","4.35%","at the Lab"]],"other":""},"Tyrannosaurus_spine":{"sell":410,"src":[["Fossil Node (Brontosaurus/T. rex kind)","5.8%","at the Lab"]],"other":""},"Tyrannosaurus_arm":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","7.25%","at the Lab"]],"other":""},"Mosasaurus_skull":{"sell":595,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","1.45%","at the Lab"]],"other":""},"Mosasaurus_arm":{"sell":100,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","7.25%","at the Lab"]],"other":""},"Mosasaurus_leg":{"sell":100,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","7.25%","at the Lab"]],"other":""},"Mosasaurus_spine":{"sell":390,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","2.9%","at the Lab"]],"other":""},"Mosasaurus_tail":{"sell":170,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","5.8%","at the Lab"]],"other":""},"Triceratops_skull":{"sell":635,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","2.25%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Triceratops_torso":{"sell":275,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","3.37%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Triceratops_leg2":{"sell":110,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Triceratops_pelvis2":{"sell":200,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","1.12%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Triceratops_tail":{"sell":180,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Pterodactyl_skull":{"sell":595,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","1.11%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Pterodactyl_arm":{"sell":100,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Pterodactyl_spine":{"sell":390,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","2.22%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Pterodactyl_torso":{"sell":255,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","3.33%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Pterodactyl_tail":{"sell":170,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","4.44%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Velociraptor_skull":{"sell":635,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","1.11%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Velociraptor_torso":{"sell":275,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","3.33%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Velociraptor_spine":{"sell":420,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","2.22%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Velociraptor_claw":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Velociraptor_leg":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Velociraptor_tail":{"sell":180,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","4.44%","at the Lab"],["Fossil Node (mixed kind)","1.5%","at the Lab"]],"other":""},"Plesiosaurus_skull":{"sell":595,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","1.45%","at the Lab"]],"other":""},"Plesiosaurus_torso":{"sell":255,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","4.35%","at the Lab"]],"other":""},"Plesiosaurus_spine":{"sell":390,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","2.9%","at the Lab"]],"other":""},"Plesiosaurus_leg":{"sell":100,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","7.25%","at the Lab"]],"other":""},"Plesiosaurus_pelvis":{"sell":185,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","5.8%","at the Lab"]],"other":""},"Plesiosaurus_tail":{"sell":170,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","5.8%","at the Lab"]],"other":""},"Mammoth_skull":{"sell":635,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","1.11%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Mammoth_torso":{"sell":275,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","3.33%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Mammoth_spine":{"sell":420,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","2.22%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Mammoth_claw":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Mammoth_leg":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Mammoth_tail":{"sell":180,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","4.44%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Stegosaurus_skull":{"sell":625,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","1.12%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Stegosaurus_torso":{"sell":270,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","3.37%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Stegosaurus_spine":{"sell":410,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","2.25%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Stegosaurus_claw":{"sell":105,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Stegosaurus_leg":{"sell":105,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Stegosaurus_tail":{"sell":180,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Gallimimus_skull":{"sell":625,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","1.12%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Gallimimus_torso":{"sell":270,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","3.37%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Gallimimus_spine":{"sell":410,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","2.25%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Gallimimus_claw":{"sell":105,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Gallimimus_pelvis":{"sell":195,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Gallimimus_tail":{"sell":180,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""}};
+for (const v of Object.values(DROPS)) v.kind = "drop";
+INFO.artifacts = DROPS; INFO.gems = DROPS; INFO.fossils = DROPS;
+const QN = {b:"bronze",s:"silver",g:"gold",o:"osmium"};
+const SEASONS = [["s","Spring"],["u","Summer"],["f","Fall"],["w","Winter"]];
+const keyOf = (a,o,i) => `${a.id}~${o.k}~${i}`;
+const mKey = (c,raw) => `museum~${c.id}~${raw}`;
+MUSEUM.forEach(c => c.items = c.raw.split(","));
+
+// ---- state ----
+let checks = {};
+let db = null, user = null, myId = null, canWrite = true, profiles = {};
+let filt = {q:"", season:"", hideGot:false};
+try { const s = JSON.parse(localStorage.getItem("ci-filters") || "{}"); filt.hideGot = !!s.hideGot; filt.season = s.season || ""; } catch(e){}
+const saveFilt = () => { try { localStorage.setItem("ci-filters", JSON.stringify({hideGot:filt.hideGot, season:filt.season})); } catch(e){} };
+const $ = id => document.getElementById(id);
+
+function route(){
+  const h = location.hash.slice(1);
+  if (h.startsWith("museum-")){ const c = MUSEUM.find(c => "museum-" + c.id === h); if (c) return {mode:"museum", cur:c}; }
+  const a = ALTARS.find(a => a.id === h);
+  return {mode:"temple", cur: a || ALTARS[0]};
+}
+const need = o => o.need === -1 ? o.items.length : Math.min(o.need, o.items.length);
+const got = (a,o) => o.items.reduce((n,_,i)=> n + (checks[keyOf(a,o,i)] ? 1 : 0), 0);
+const offerDone = (a,o) => got(a,o) >= need(o);
+const mGot = c => c.items.reduce((n,r) => n + (checks[mKey(c,r)] ? 1 : 0), 0);
+function setStatus(kind, text){ $("dot").className = "dot " + kind; $("statusText").textContent = text; }
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function fishDetails(info){
+  const box = el("div","finfo");
+  const tags = el("div","tags");
+  if (info.s){
+    if (info.s === "sufw") tags.append(el("span","sea x","All seasons"));
+    else SEASONS.forEach(([c,n]) => { if (info.s.includes(c)) tags.append(el("span","sea " + c, n)); });
+  } else tags.append(el("span","sea x","Season not listed"));
+  if (info.rarity) tags.append(el("span","rar " + info.rarity.replace(/\s/g,""), info.rarity));
+  box.append(tags);
+  const line = (label, val) => { if (!val) return; const d = el("div"); const b = el("b", null, label + ": "); d.append(b, val); box.append(d); };
+  line("Where", info.where);
+  line("When", info.time);
+  line("Weather", info.weather);
+  if (info.note) box.append(el("div", null, info.note));
+  if (info.src === "mix") box.append(el("div","src","Season from coral.guide; place and time from the Coral Island wiki"));
+  return box;
+}
+
+function recipeDetails(r){
+  const box = el("div","finfo");
+  const d1 = el("div"); d1.append(el("b",null,"Cook with: "), r.tool); box.append(d1);
+  const d2 = el("div"); d2.append(el("b",null,"Ingredients: "), r.ing.join(", ")); box.append(d2);
+  if (r.unlock){ const d3 = el("div"); d3.append(el("b",null,"Unlock: "), r.unlock); box.append(d3); }
+  return box;
+}
+function dropDetails(d){
+  const box = el("div","finfo");
+  if (d.src && d.src.length){
+    box.append(el("div","src","Chance per item opened"));
+    const ul = el("div","drops");
+    d.src.forEach(([from, ch, how]) => {
+      const r = el("div","drop"); r.append(el("span",null,from + (how ? " · " + how : "")), el("b",null, ch));
+      ul.append(r);
+    });
+    box.append(ul);
+  }
+  if (d.other) box.append(el("div",null,d.other));
+  if (d.sell) { const s = el("div"); s.append(el("b",null,"Sells for: "), d.sell + " coins"); box.append(s); }
+  return box;
+}
+const details = info => info.kind === "recipe" ? recipeDetails(info) : info.kind === "drop" ? dropDetails(info) : fishDetails(info);
+const expanded = new Set();
+function checkRow(key, name, extras, info){
+  const c = checks[key];
+  const inp = document.createElement("input"); inp.type = "checkbox"; inp.id = "c_" + key.replace(/[^A-Za-z0-9_-]/g,"_");
+  inp.checked = !!c; inp.disabled = !canWrite;
+  inp.addEventListener("change", () => toggle(key, inp.checked));
+  const box = el("span","box"); box.innerHTML = '<svg viewBox="0 0 16 16"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+  let lab;
+  if (info){
+    // fish: checkbox ticks, name opens the spawn info
+    lab = el("div","item has-info" + (c ? " ticked" : ""));
+    const tick = el("label","tick"); tick.htmlFor = inp.id; tick.append(inp, box);
+    tick.setAttribute("aria-label", "Mark " + name);
+    const open = expanded.has(key);
+    const btn = el("button","name name-btn"); btn.type = "button"; btn.setAttribute("aria-expanded", String(open));
+    btn.append(name, el("span","chev", open ? "▴" : "▾"));
+    btn.addEventListener("click", () => { if (expanded.has(key)) expanded.delete(key); else expanded.add(key); render(); });
+    lab.append(tick, btn);
+  } else {
+    lab = el("label","item");
+    lab.append(inp, box, el("span","name",name));
+  }
+  (extras || []).forEach(x => lab.append(x));
+  if (c && c.by && profiles[c.by]){
+    const p = profiles[c.by]; const img = el("img","who"); img.src = p.avatarUrl; img.alt = "";
+    img.title = "Ticked by " + (p.isMe ? "you" : (p.name || "someone"));
+    lab.append(img);
+  }
+  return lab;
+}
+
+async function render(){
+  const {mode, cur} = route();
+  // progress
+  let tDone = 0, tAll = 0; ALTARS.forEach(a => { tAll += a.offers.length; tDone += a.offers.filter(o=>offerDone(a,o)).length; });
+  let mDone = 0, mAll = 0; MUSEUM.forEach(c => { mAll += c.items.length; mDone += mGot(c); });
+  $("templeText").textContent = `Temple ${tDone} / ${tAll} offerings`; $("templeBar").style.width = tDone/tAll*100 + "%";
+  $("museumText").textContent = `Museum ${mDone} / ${mAll} donated`; $("museumBar").style.width = mDone/mAll*100 + "%";
+  // mode switch
+  const modes = $("modes"); modes.textContent = "";
+  [["temple","Temple offerings","#" + ALTARS[0].id],["museum","Museum","#museum-" + MUSEUM[0].id]].forEach(([m,label,href]) => {
+    const a = el("a","mode",label); a.href = href; if (m === mode) a.setAttribute("aria-current","page"); modes.append(a);
+  });
+  // tabs
+  const tabs = $("tabs"); tabs.textContent = "";
+  const list = mode === "temple" ? ALTARS : MUSEUM;
+  list.forEach(x => {
+    const total = mode === "temple" ? x.offers.length : x.items.length;
+    const d = mode === "temple" ? x.offers.filter(o=>offerDone(x,o)).length : mGot(x);
+    const t = el("a","tab" + (d === total ? " complete" : ""));
+    t.href = "#" + (mode === "temple" ? x.id : "museum-" + x.id); t.setAttribute("role","tab");
+    if (x === cur) t.setAttribute("aria-current","page");
+    t.append(mode === "temple" ? x.name.replace(" Altar","") : x.name, el("small", null, `${d}/${total}`));
+    tabs.append(t);
+  });
+
+  const ids = [...new Set(Object.values(checks).map(c=>c.by).filter(Boolean))];
+  if (user && ids.length){ try { profiles = await user.profiles(ids); } catch(e){} }
+
+  const grid = $("grid"); grid.textContent = "";
+  $("resetBtn").hidden = !canWrite;
+  if (mode === "temple") renderTemple(cur, grid); else renderMuseum(cur, grid);
+}
+
+function renderTemple(cur, grid){
+  $("toolbar").hidden = true;
+  $("altarTitle").textContent = cur.name;
+  $("altarSub").textContent = cur.reward ? `Completing it: ${cur.reward}` : "";
+  $("resetBtn").textContent = "Clear this altar";
+  $("note").innerHTML = 'Offering data from <a href="https://coral.guide/my/offerings-checklist/cropaltar" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3). "Any N" means only that many of the listed items are needed. Quality badges show the minimum quality.';
+  grid.className = "grid";
+  for (const o of cur.offers){
+    const g = got(cur,o), n = need(o), done = g >= n;
+    const card = el("section","offer" + (done ? " done" : ""));
+    const head = el("div","offer-head"); const hl = el("div"); hl.style.minWidth = "0";
+    hl.append(el("h3", null, o.t), el("div","need", o.need === -1 ? "All required" : `Any ${n} of ${o.items.length}`));
+    head.append(hl, el("span","count", done ? "Ready ✓" : `${Math.min(g,n)} / ${n}`)); card.append(head);
+    const ul = el("ul");
+    o.items.forEach(([name, qty=1, q], i) => {
+      const extras = [];
+      if (q) extras.push(el("span","q " + QN[q], QN[q]));
+      if (qty > 1) extras.push(el("span","qty","×" + qty));
+      const k = keyOf(cur,o,i), fi = INFO_BY_NAME[normName(name)];
+      const li = el("li"); li.append(checkRow(k, name, extras, fi));
+      if (fi && expanded.has(k)) li.append(details(fi));
+      ul.append(li);
+    });
+    card.append(ul);
+    if (o.reward){ const r = el("div","reward"); r.append("Reward: ", el("b", null, o.reward)); card.append(r); }
+    grid.append(card);
+  }
+}
+
+function renderMuseum(cur, grid){
+  const isFish = cur.id === "fish", hasInfo = !!INFO[cur.id], seasonal = ["fish","insects","critters"].includes(cur.id);
+  $("toolbar").hidden = false;
+  $("altarTitle").textContent = cur.name;
+  $("altarSub").textContent = `${mGot(cur)} of ${cur.items.length} donated`;
+  $("resetBtn").textContent = "Clear this collection";
+  $("note").innerHTML = !seasonal && hasInfo
+    ? 'Tap a name to see where it comes from. Coffers and geodes are opened at the Blacksmith and fossil nodes at the Lab; the percentage is the chance per item opened. Data from <a href="https://coral.guide/" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3).'
+    : hasInfo
+    ? 'Tap a name to see where and when to find it. Museum list and spawn data from <a href="https://coral.guide/" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3). For 11 fish, coral.guide has no place or time data, so those come from the <a href="https://coralisland.wiki/wiki/Fish" target="_blank" rel="noopener">Coral Island wiki</a>. Notes describe extra conditions, such as date windows or other places.'
+    : 'Museum list from <a href="https://coral.guide/" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3).';
+  const chips = $("seasonChips"); chips.textContent = "";
+  if (seasonal){
+    [["","Any season"], ...SEASONS].forEach(([c,n]) => {
+      const b = el("button","chip",n); b.type = "button"; b.setAttribute("aria-pressed", String(filt.season === c));
+      b.addEventListener("click", () => { filt.season = c; saveFilt(); render(); }); chips.append(b);
+    });
+  }
+  $("hideGot").setAttribute("aria-pressed", String(filt.hideGot));
+  grid.className = "mlist" + (hasInfo ? " fishes" : "");
+  const q = filt.q.trim().toLowerCase();
+  let shown = 0;
+  cur.items.forEach(raw => {
+    const name = prettify(raw), key = mKey(cur, raw), have = !!checks[key];
+    if (q && !name.toLowerCase().includes(q)) return;
+    if (filt.hideGot && have) return;
+    const fi = hasInfo ? INFO[cur.id][raw] : null;
+    if (seasonal && filt.season && fi && fi.s && !fi.s.includes(filt.season)) return;
+    const row = el("div","mrow" + (have ? " got" : ""));
+    row.append(checkRow(key, name, null, fi));
+    if (fi && expanded.has(key)) row.append(details(fi));
+    grid.append(row); shown++;
+  });
+  if (!shown) grid.append(el("p","empty", filt.hideGot && !q ? "Everything here is donated." : "Nothing matches. Try another search or season."));
+}
+
+async function toggle(k, on){
+  if (on) checks[k] = {by:myId}; else delete checks[k];
+  render();
+  if (!db) return;
+  try {
+    const ref = db.collection("checks").doc(k);
+    if (on) await ref.set({by: myId, at: Date.now()}); else await ref.delete();
+  } catch(e){
+    if (e && e.code === "invalid_argument"){ canWrite = false; showBanner("You can view this checklist but not change it. Reload the page and try again."); render(); }
+    else showBanner("That change didn't save. Check your connection and tick it again.");
+  }
+}
+function showBanner(t){ const b = $("banner"); b.textContent = t; b.hidden = false; }
+
+let qTimer = null;
+$("search").addEventListener("input", e => { filt.q = e.target.value; clearTimeout(qTimer); qTimer = setTimeout(render, 120); });
+$("hideGot").addEventListener("click", () => { filt.hideGot = !filt.hideGot; saveFilt(); render(); });
+
+let armed = null;
+$("resetBtn").addEventListener("click", async () => {
+  const btn = $("resetBtn"), {mode, cur} = route();
+  const label = btn.textContent;
+  if (!btn.classList.contains("arm")){
+    btn.classList.add("arm"); btn.dataset.label = label; btn.textContent = `Tap again to clear ${cur.name}`;
+    clearTimeout(armed); armed = setTimeout(()=>{ btn.classList.remove("arm"); btn.textContent = btn.dataset.label; }, 3500);
+    return;
+  }
+  clearTimeout(armed); btn.classList.remove("arm");
+  const prefix = mode === "temple" ? cur.id + "~" : `museum~${cur.id}~`;
+  const keys = Object.keys(checks).filter(k => k.startsWith(prefix));
+  keys.forEach(k => delete checks[k]); render();
+  if (db) for (const k of keys){ try { await db.collection("checks").doc(k).delete(); } catch(e){} }
+});
+
+window.addEventListener("hashchange", () => { filt.q = ""; $("search").value = ""; render(); window.scrollTo(0,0); });
+render();
+
+// ---- Sync through Firebase Realtime Database ----
+function initial(name){ return (name || "?").trim().charAt(0).toUpperCase() || "?"; }
+function hue(name){ let h = 0; for (const ch of name || "") h = (h * 31 + ch.charCodeAt(0)) % 360; return h; }
+function avatarFor(name){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="hsl(${hue(name)},55%,45%)"/><text x="12" y="16.5" font-family="Arial,sans-serif" font-size="13" font-weight="700" text-anchor="middle" fill="#fff">${initial(name).replace(/[<&>]/g,"")}</text></svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+(function(){
+  const params = new URLSearchParams(location.search);
+  let room = params.get("room");
+  if (!room || !/^[A-Za-z0-9]{8,40}$/.test(room)){
+    const abc = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    room = Array.from(crypto.getRandomValues(new Uint8Array(12)), b => abc[b % abc.length]).join("");
+    params.set("room", room);
+    history.replaceState(null, "", location.pathname + "?" + params.toString() + location.hash);
+  }
+  const inviteUrl = () => location.origin + location.pathname + "?room=" + room;
+  $("linkbox").textContent = inviteUrl();
+  $("copyLink").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(inviteUrl()); $("copied").hidden = false; setTimeout(() => $("copied").hidden = true, 2500); }
+    catch(e){ const r = document.createRange(); r.selectNodeContents($("linkbox")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+  });
+
+  let nick = ""; try { nick = localStorage.getItem("ci-nick") || ""; } catch(e){}
+  $("nick").value = nick;
+  myId = nick || "Player";
+  $("nick").addEventListener("change", e => { nick = e.target.value.trim().slice(0,20); myId = nick || "Player"; try { localStorage.setItem("ci-nick", nick); } catch(err){} render(); });
+
+  const cfg = window.FIREBASE_CONFIG;
+  if (!window.firebase || !cfg || !cfg.databaseURL || /PASTE/.test(cfg.databaseURL)){
+    setStatus("err", "Not syncing: add your Firebase settings to firebase-config.js");
+    return;
+  }
+  firebase.initializeApp(cfg);
+  const ref = firebase.database().ref("rooms/" + room + "/checks");
+  db = { collection: () => ({ doc: k => ({
+    set: v => ref.child(k).set(v),
+    delete: () => ref.child(k).remove(),
+  }) }) };
+  firebase.database().ref(".info/connected").on("value", s => { if (s.val() === false && Object.keys(checks).length) setStatus("err", "Offline. Changes will sync when you reconnect."); });
+  ref.on("value", snap => {
+    checks = snap.val() || {};
+    profiles = {};
+    for (const c of Object.values(checks)) if (c && c.by && !profiles[c.by]) profiles[c.by] = {name: c.by, avatarUrl: avatarFor(c.by), isMe: c.by === myId};
+    setStatus("live", "Synced live");
+    render();
+  }, () => setStatus("err", "Sync failed. Check the database rules in the setup guide."));
+})();
+</script>
+</body></html>
