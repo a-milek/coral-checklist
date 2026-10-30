@@ -61,7 +61,8 @@ main{padding-block:18px 48px}
 .altar-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:14px}
 .altar-head h2{font-family:var(--f-display);font-weight:800;font-size:26px;margin:0}
 .altar-head p{margin:0;color:var(--muted);font-size:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
+.grid{display:flex;gap:14px;align-items:flex-start}
+.mcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
 .offer{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .offer.done{border-color:color-mix(in srgb,var(--done) 55%,var(--line))}
 .offer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 10px}
@@ -82,6 +83,11 @@ ul{list-style:none;margin:0;padding:0 6px 6px}
 .qty{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700;font-size:13px}
 .q{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:1px 7px;border-radius:99px;border:1.5px solid currentColor}
 .q.bronze{color:var(--q-bronze)}.q.silver{color:var(--q-silver)}.q.gold{color:var(--q-gold)}.q.osmium{color:var(--q-osmium)}
+.icon{flex:none;width:28px;height:28px;object-fit:contain}
+.item input:checked ~ .icon,.ticked .icon{opacity:.55}
+.hurry{display:block;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--coral);line-height:1.3}
+.name-btn .nm{display:block}
+.ticked .hurry,.item input:checked ~ .name .hurry{opacity:.5}
 .who{flex:none;width:22px;height:22px;border-radius:50%;object-fit:cover;background:var(--surface-2)}
 .reward{border-top:1px dashed var(--line);padding:8px 14px 10px;font-size:13px;color:var(--muted)}
 .reward b{color:var(--fg);font-weight:700}
@@ -90,7 +96,6 @@ ul{list-style:none;margin:0;padding:0 6px 6px}
 .banner{margin:12px 0 0;padding:10px 14px;border-radius:10px;background:var(--surface-2);color:var(--fg);font-size:14px}
 .reset{background:none;border:1px solid var(--line);color:var(--muted);font:600 13px var(--f-body);padding:6px 12px;border-radius:99px;cursor:pointer}
 .reset.arm{border-color:var(--coral);color:var(--coral)}
-@media (max-width:420px){.grid{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 :root{--sp:#3f9e4d;--su:#c49a12;--fa:#d0702a;--wi:#3d8bd1}
 .modes{display:flex;gap:6px;background:var(--surface-2);padding:4px;border-radius:12px;width:max-content;max-width:100%}
@@ -402,6 +407,12 @@ Object.assign(RECIPES, {
 });
 for (const n of ["Tomato Soup","Onigiri","Es Cendol","Es Doger","Jamu"]) INFO_BY_NAME[normName(n)] = RECIPES[n];
 
+// ---- Icons: icons/<name>_Sprite.png. Temple items reuse the museum sprite when the item is also a museum item ----
+const iconPath = raw => "icons/" + encodeURIComponent(raw) + "_Sprite.png";
+const ICON_BY_NAME = {};
+MUSEUM.forEach(c => c.raw.split(",").forEach(raw =>ICON_BY_NAME[normName(prettify(raw))] = raw));
+const templeIcon = name => /^Any /.test(name) ? null : iconPath(ICON_BY_NAME[normName(name)] || name.replace(/ /g, "_"));
+
 // ---- Artifact, gem and fossil sources (coral.guide item files, v1.3). Chance = % per opened coffer/geode/node ----
 const DROPS = {"Silver_Spoon":{"sell":1100,"src":[["Pirate Coffer","1.41%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Silver_Fork":{"sell":1100,"src":[["Pirate Coffer","1.41%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Oversized_Spoon":{"sell":770,"src":[["Pirate Coffer","2.82%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Small_Figurine":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Ships_Wheel":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Rusty_anchor":{"sell":550,"src":[["Pirate Coffer","4.23%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Snow_Globe":{"sell":465,"src":[["Ornate Coffer","3.75%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 1165 (max 5 per year)."},"Hammerstone":{"sell":105,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Stone_Hand_Axe":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Harpoon":{"sell":105,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Rusty_spear":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Terracotta_Soldier":{"sell":651,"src":[["Ornate Coffer","2.5%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Underwater_Tablet":{"sell":330,"src":[["Pirate Coffer","5.63%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Green_Mask":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Red_Mask":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Blue_Mask":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Prehistoric_Bowl":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Ancient_Map":{"sell":651,"src":[["Ornate Coffer","2.5%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Stone_Portrait":{"sell":735,"src":[["Marble Coffer","2.35%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Bronze_Hammer":{"sell":500,"src":[["Coffer","2.65%","at the Blacksmith"]],"other":""},"Ruby_Hairpin":{"sell":930,"src":[["Ornate Coffer","1.25%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Sky_Disk":{"sell":525,"src":[["Marble Coffer","3.53%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Clay_Vessel":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Ancient_Battery":{"sell":700,"src":[["Coffer","1.77%","at the Blacksmith"]],"other":""},"Golden_Bell":{"sell":500,"src":[["Coffer","2.65%","at the Blacksmith"]],"other":""},"Optical_Glass_Prism":{"sell":465,"src":[["Ornate Coffer","3.75%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Leather_Parchment":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Wood_Carving":{"sell":525,"src":[["Marble Coffer","3.53%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Shadow_Puppet":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Golden_Keris":{"sell":700,"src":[["Coffer","1.77%","at the Blacksmith"]],"other":""},"Ceramic_Vase":{"sell":1050,"src":[["Marble Coffer","1.18%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Chipped_Pottery_Jug":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Ancient_Compass":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Wooden_hand_fan":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Bronze_Statue":{"sell":770,"src":[["Pirate Coffer","2.82%","at the Blacksmith"],["Mysterious Coffer","0.8%","at the Blacksmith"]],"other":""},"Chipped_helmet":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Unfinished_Clay_Statue":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Beaded_Necklace":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Metal_Boot":{"sell":300,"src":[["Coffer","3.54%","at the Blacksmith"]],"other":""},"Gardonite_ring":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Jasmine_Crown":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Jade_Locket":{"sell":150,"src":[["Coffer","4.42%","at the Blacksmith"]],"other":""},"Masquerade_Mask":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Pearl_Chain":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gold_earring":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Shell_anklet":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Ancient_Rainbow_Armband":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Stingray_Jewel_Plate":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Terrarium_Pendant":{"sell":500,"src":[["Coffer","2.65%","at the Blacksmith"]],"other":""},"Moonlight_Earrings":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Dragons_Tears":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Jade_Hair_Stick":{"sell":500,"src":[["Shimmering Coffer","3.61%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Pearl_brooch":{"sell":500,"src":[["Shimmering Coffer","3.61%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Carved_Ring_Holder":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Dragons_trisula":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Broken_Blade":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Batik_Shawl":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Royal_Bowl":{"sell":84,"src":[["Ornate Coffer","6.25%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Beach_snow_globe":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":"Beach Clean Up festival shop sells it for 225 (limit 1)."},"Glass_Bowl":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Flying_Dragon_Teapot":{"sell":1000,"src":[["Shimmering Coffer","1.2%","at the Blacksmith"],["Mysterious Coffer","0.4%","at the Blacksmith"]],"other":""},"Town_Model":{"sell":550,"src":[["Pirate Coffer","4.23%","at the Blacksmith"],["Mysterious Coffer","1.2%","at the Blacksmith"]],"other":""},"Gemstone_Bonsai":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gold_fish":{"sell":97,"src":[["Marble Coffer","5.88%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Crystal_Ball":{"sell":315,"src":[["Marble Coffer","4.71%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gemstone_Hourglass":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gemstone_Candlestick":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Magic_Lamp":{"sell":300,"src":[["Shimmering Coffer","4.82%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Broken_Sundial":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Salt_Lamp":{"sell":90,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Glass_Star":{"sell":96,"src":[["Pirate Coffer","7.04%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Silver_sandal":{"sell":279,"src":[["Ornate Coffer","5%","at the Blacksmith"],["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Cassete_Player":{"sell":150,"src":[["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"C_I__Jo":{"sell":300,"src":[["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Dumbphone":{"sell":150,"src":[["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Water_Bottle":{"sell":300,"src":[["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Vinyl_record":{"sell":300,"src":[["Mysterious Coffer","1.59%","at the Blacksmith"]],"other":""},"Gemstone_beads":{"sell":150,"src":[["Shimmering Coffer","6.02%","at the Blacksmith"],["Mysterious Coffer","1.99%","at the Blacksmith"]],"other":""},"Emerald":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Aquamarine":{"sell":130,"src":[["Water Geode","8.2%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Amethyst":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Topaz":{"sell":149,"src":[["Fire Geode","7.69%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Jade":{"sell":218,"src":[["Wind Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Diamond":{"sell":407,"src":[["Water Geode","3.28%","at the Blacksmith"],["Mystery Geode","1.16%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 2000 (max 3 per year)."},"Opal":{"sell":324,"src":[["Fire Geode","4.62%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Peridot":{"sell":290,"src":[["Wind Geode","4.84%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Moonstone":{"sell":195,"src":[["Water Geode","6.56%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Onyx":{"sell":149,"src":[["Fire Geode","7.69%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Morganite":{"sell":176,"src":[["Earth Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Lepidolite":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Fire_Agate":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Quartz":{"sell":130,"src":[["Water Geode","8.2%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Labradorite":{"sell":324,"src":[["Fire Geode","4.62%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Rose_Quartz":{"sell":223,"src":[["Fire Geode","6.15%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 1100 (max 3 per year)."},"blue_quartz":{"sell":195,"src":[["Water Geode","6.56%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Variscite":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Azurite":{"sell":260,"src":[["Water Geode","4.92%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Serpentine":{"sell":218,"src":[["Wind Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Rhodonite":{"sell":149,"src":[["Fire Geode","7.69%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Amber":{"sell":145,"src":[["Wind Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Garnet":{"sell":223,"src":[["Fire Geode","6.15%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Beryl":{"sell":272,"src":[["Water Geode","4.92%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Diorite":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Jasper":{"sell":234,"src":[["Earth Geode","4.84%","at the Blacksmith"],["Mystery Geode","1.74%","at the Blacksmith"]],"other":""},"Granite":{"sell":115,"src":[["Earth Geode","8.06%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Marble":{"sell":176,"src":[["Earth Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Crystal":{"sell":130,"src":[["Water Geode","8.2%","at the Blacksmith"],["Mystery Geode","2.91%","at the Blacksmith"]],"other":""},"Black_Opal":{"sell":351,"src":[["Earth Geode","3.23%","at the Blacksmith"],["Mystery Geode","1.16%","at the Blacksmith"]],"other":""},"Red_Beryl":{"sell":527,"src":[["Earth Geode","1.61%","at the Blacksmith"],["Mystery Geode","0.58%","at the Blacksmith"]],"other":""},"Pink_Crystal":{"sell":176,"src":[["Earth Geode","6.45%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":"Winter Fair shop sells it for 900 (max 5 per year)."},"Purple_Crystal":{"sell":223,"src":[["Fire Geode","6.15%","at the Blacksmith"],["Mystery Geode","2.33%","at the Blacksmith"]],"other":""},"Pink_Diamond":{"sell":653,"src":[["Wind Geode","1.61%","at the Blacksmith"],["Mystery Geode","0.58%","at the Blacksmith"]],"other":""},"Ruby":{"sell":486,"src":[["Fire Geode","3.08%","at the Blacksmith"],["Mystery Geode","1.16%","at the Blacksmith"]],"other":""},"Brontosaurus_skull":{"sell":625,"src":[["Fossil Node (Brontosaurus/T. rex kind)","1.45%","at the Lab"]],"other":""},"Brontosaurus_leg":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","7.25%","at the Lab"]],"other":""},"Tyrannosaurus_skull":{"sell":625,"src":[["Fossil Node (Brontosaurus/T. rex kind)","2.9%","at the Lab"]],"other":""},"Mosasaurus_torso":{"sell":255,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","4.35%","at the Lab"]],"other":""},"Triceratops_arm":{"sell":110,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Pterodactyl_leg":{"sell":100,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Brontosaurus_torso":{"sell":270,"src":[["Fossil Node (Brontosaurus/T. rex kind)","4.35%","at the Lab"]],"other":""},"Brontosaurus_hip":{"sell":195,"src":[["Fossil Node (Brontosaurus/T. rex kind)","5.8%","at the Lab"]],"other":""},"Brontosaurus_spine":{"sell":410,"src":[["Fossil Node (Brontosaurus/T. rex kind)","2.9%","at the Lab"]],"other":""},"Brontosaurus_tail":{"sell":180,"src":[["Fossil Node (Brontosaurus/T. rex kind)","5.8%","at the Lab"]],"other":""},"Tyrannosaurus_claw":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","7.25%","at the Lab"]],"other":""},"Tyrannosaurus_leg":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","1.45%","at the Lab"]],"other":""},"Tyrannosaurus_torso":{"sell":270,"src":[["Fossil Node (Brontosaurus/T. rex kind)","4.35%","at the Lab"]],"other":""},"Tyrannosaurus_spine":{"sell":410,"src":[["Fossil Node (Brontosaurus/T. rex kind)","5.8%","at the Lab"]],"other":""},"Tyrannosaurus_arm":{"sell":105,"src":[["Fossil Node (Brontosaurus/T. rex kind)","7.25%","at the Lab"]],"other":""},"Mosasaurus_skull":{"sell":595,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","1.45%","at the Lab"]],"other":""},"Mosasaurus_arm":{"sell":100,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","7.25%","at the Lab"]],"other":""},"Mosasaurus_leg":{"sell":100,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","7.25%","at the Lab"]],"other":""},"Mosasaurus_spine":{"sell":390,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","2.9%","at the Lab"]],"other":""},"Mosasaurus_tail":{"sell":170,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","5.8%","at the Lab"]],"other":""},"Triceratops_skull":{"sell":635,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","2.25%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Triceratops_torso":{"sell":275,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","3.37%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Triceratops_leg2":{"sell":110,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Triceratops_pelvis2":{"sell":200,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","1.12%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Triceratops_tail":{"sell":180,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Pterodactyl_skull":{"sell":595,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","1.11%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Pterodactyl_arm":{"sell":100,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Pterodactyl_spine":{"sell":390,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","2.22%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Pterodactyl_torso":{"sell":255,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","3.33%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Pterodactyl_tail":{"sell":170,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","4.44%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Velociraptor_skull":{"sell":635,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","1.11%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Velociraptor_torso":{"sell":275,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","3.33%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Velociraptor_spine":{"sell":420,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","2.22%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Velociraptor_claw":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Velociraptor_leg":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Velociraptor_tail":{"sell":180,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","4.44%","at the Lab"],["Fossil Node (mixed kind)","1.5%","at the Lab"]],"other":""},"Plesiosaurus_skull":{"sell":595,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","1.45%","at the Lab"]],"other":""},"Plesiosaurus_torso":{"sell":255,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","4.35%","at the Lab"]],"other":""},"Plesiosaurus_spine":{"sell":390,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","2.9%","at the Lab"]],"other":""},"Plesiosaurus_leg":{"sell":100,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","7.25%","at the Lab"]],"other":""},"Plesiosaurus_pelvis":{"sell":185,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","5.8%","at the Lab"]],"other":""},"Plesiosaurus_tail":{"sell":170,"src":[["Fossil Node (Mosasaurus/Plesiosaurus kind)","5.8%","at the Lab"]],"other":""},"Mammoth_skull":{"sell":635,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","1.11%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Mammoth_torso":{"sell":275,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","3.33%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Mammoth_spine":{"sell":420,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","2.22%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Mammoth_claw":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Mammoth_leg":{"sell":110,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","5.56%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Mammoth_tail":{"sell":180,"src":[["Fossil Node (Pterodactyl/Velociraptor/Mammoth kind)","4.44%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Stegosaurus_skull":{"sell":625,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","1.12%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Stegosaurus_torso":{"sell":270,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","3.37%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Stegosaurus_spine":{"sell":410,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","2.25%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Stegosaurus_claw":{"sell":105,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Stegosaurus_leg":{"sell":105,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Stegosaurus_tail":{"sell":180,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Gallimimus_skull":{"sell":625,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","1.12%","at the Lab"],["Fossil Node (mixed kind)","0.62%","at the Lab"]],"other":""},"Gallimimus_torso":{"sell":270,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","3.37%","at the Lab"],["Fossil Node (mixed kind)","1.86%","at the Lab"]],"other":""},"Gallimimus_spine":{"sell":410,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","2.25%","at the Lab"],["Fossil Node (mixed kind)","1.24%","at the Lab"]],"other":""},"Gallimimus_claw":{"sell":105,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","5.62%","at the Lab"],["Fossil Node (mixed kind)","3.11%","at the Lab"]],"other":""},"Gallimimus_pelvis":{"sell":195,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""},"Gallimimus_tail":{"sell":180,"src":[["Fossil Node (Triceratops/Stegosaurus/Gallimimus kind)","4.49%","at the Lab"],["Fossil Node (mixed kind)","2.48%","at the Lab"]],"other":""}};
 for (const v of Object.values(DROPS)) v.kind = "drop";
@@ -420,8 +431,45 @@ try { const s = JSON.parse(localStorage.getItem("ci-filters") || "{}"); filt.hid
 const saveFilt = () => { try { localStorage.setItem("ci-filters", JSON.stringify({hideGot:filt.hideGot, season:filt.season})); } catch(e){} };
 const $ = id => document.getElementById(id);
 
+// ---- This season: museum critters with season data, plus temple items that are seasonal ----
+const SEASON_TABS = SEASONS.map(([id, name]) => ({id, name}));
+const SESAJEN = {Spring_Offerings:"s", Summer_Offerings:"u", Fall_Offerings:"f", Winter_Offerings:"w"};
+const CROP_SEASON = {};
+ALTARS.forEach(a => a.offers.forEach(o => { if (SESAJEN[o.k]) o.items.forEach(([n]) => CROP_SEASON[normName(n)] = SESAJEN[o.k]); }));
+const itemSeasons = name => CROP_SEASON[normName(name)] || (INFO_BY_NAME[normName(name)] || {}).s || "";
+let lastSeason = "s";
+try { lastSeason = localStorage.getItem("ci-season") || "s"; } catch(e){}
+function seasonGroups(sid){
+  const groups = [];
+  ALTARS.forEach(a => {
+    const rows = [];
+    a.offers.forEach(o => {
+      const full = offerDone(a, o);
+      o.items.forEach(([name, qty=1, q], i) => {
+        const key = keyOf(a, o, i);
+        if (!itemSeasons(name).includes(sid) || (full && !checks[key])) return; // offer already complete without it
+        rows.push({key, name, qty, q, s: itemSeasons(name), info: INFO_BY_NAME[normName(name)], icon: templeIcon(name)});
+      });
+    });
+    groups.push({title: a.name, rows});
+  });
+  [["fish","Fish"],["insects","Insects"],["critters","Sea Critters"]].forEach(([id, title]) => {
+    const c = MUSEUM.find(m => m.id === id);
+    const rows = c.items.filter(raw => ((INFO[id][raw] || {}).s || "").includes(sid))
+      .map(raw => ({key: mKey(c, raw), name: prettify(raw), s: INFO[id][raw].s, info: INFO[id][raw], icon: iconPath(raw)}));
+    groups.push({title: "Museum: " + title, rows});
+  });
+  // last chance = not in any later season this year (in Winter: not in next Spring either, since it runs straight on)
+  const i = SEASONS.findIndex(([c]) => c === sid);
+  const later = SEASONS.slice(i + 1).map(([c]) => c).join("") || SEASONS[0][0];
+  groups.forEach(g => g.rows.forEach(r => { r.done = !!checks[r.key]; r.last = ![...later].some(c => r.s.includes(c)); r.only = r.s === sid; }));
+  return groups.filter(g => g.rows.length);
+}
+const seasonLeft = sid => seasonGroups(sid).reduce((n, g) => n + g.rows.filter(r => !r.done).length, 0);
+
 function route(){
   const h = location.hash.slice(1);
+  if (h.startsWith("season")){ const s = SEASON_TABS.find(s => "season-" + s.id === h) || SEASON_TABS.find(s => s.id === lastSeason) || SEASON_TABS[0]; return {mode:"season", cur:s}; }
   if (h.startsWith("museum-")){ const c = MUSEUM.find(c => "museum-" + c.id === h); if (c) return {mode:"museum", cur:c}; }
   const a = ALTARS.find(a => a.id === h);
   return {mode:"temple", cur: a || ALTARS[0]};
@@ -475,8 +523,10 @@ function dropDetails(d){
 }
 const details = info => info.kind === "recipe" ? recipeDetails(info) : info.kind === "drop" ? dropDetails(info) : fishDetails(info);
 const expanded = new Set();
-function checkRow(key, name, extras, info){
+function checkRow(key, name, extras, info, iconSrc, flag){
   const c = checks[key];
+  const icon = iconSrc ? el("img","icon") : null;
+  if (icon){ icon.src = iconSrc; icon.alt = ""; icon.loading = "lazy"; icon.width = icon.height = 28; icon.onerror = () => icon.remove(); }
   const inp = document.createElement("input"); inp.type = "checkbox"; inp.id = "c_" + key.replace(/[^A-Za-z0-9_-]/g,"_");
   inp.checked = !!c; inp.disabled = !canWrite;
   inp.addEventListener("change", () => toggle(key, inp.checked));
@@ -489,12 +539,18 @@ function checkRow(key, name, extras, info){
     tick.setAttribute("aria-label", "Mark " + name);
     const open = expanded.has(key);
     const btn = el("button","name name-btn"); btn.type = "button"; btn.setAttribute("aria-expanded", String(open));
-    btn.append(name, el("span","chev", open ? "▴" : "▾"));
+    if (flag){ const nm = el("span","nm",name); nm.append(flag); btn.append(nm); } else btn.append(name);
+    btn.append(el("span","chev", open ? "▴" : "▾"));
     btn.addEventListener("click", () => { if (expanded.has(key)) expanded.delete(key); else expanded.add(key); render(); });
-    lab.append(tick, btn);
+    lab.append(tick);
+    if (icon) lab.append(icon);
+    lab.append(btn);
   } else {
     lab = el("label","item");
-    lab.append(inp, box, el("span","name",name));
+    lab.append(inp, box);
+    if (icon) lab.append(icon);
+    const nm = el("span","name",name); if (flag) nm.append(flag);
+    lab.append(nm);
   }
   (extras || []).forEach(x => lab.append(x));
   if (c && c.by && profiles[c.by]){
@@ -514,13 +570,20 @@ async function render(){
   $("museumText").textContent = `Museum ${mDone} / ${mAll} donated`; $("museumBar").style.width = mDone/mAll*100 + "%";
   // mode switch
   const modes = $("modes"); modes.textContent = "";
-  [["temple","Temple offerings","#" + ALTARS[0].id],["museum","Museum","#museum-" + MUSEUM[0].id]].forEach(([m,label,href]) => {
+  [["temple","Temple offerings","#" + ALTARS[0].id],["museum","Museum","#museum-" + MUSEUM[0].id],["season","This season","#season-" + lastSeason]].forEach(([m,label,href]) => {
     const a = el("a","mode",label); a.href = href; if (m === mode) a.setAttribute("aria-current","page"); modes.append(a);
   });
   // tabs
   const tabs = $("tabs"); tabs.textContent = "";
-  const list = mode === "temple" ? ALTARS : MUSEUM;
-  list.forEach(x => {
+  if (mode === "season"){
+    SEASON_TABS.forEach(s => {
+      const left = seasonLeft(s.id);
+      const t = el("a","tab" + (left ? "" : " complete")); t.href = "#season-" + s.id; t.setAttribute("role","tab");
+      if (s === cur) t.setAttribute("aria-current","page");
+      t.append(s.name, el("small", null, left ? `${left} left` : "done"));
+      tabs.append(t);
+    });
+  } else (mode === "temple" ? ALTARS : MUSEUM).forEach(x => {
     const total = mode === "temple" ? x.offers.length : x.items.length;
     const d = mode === "temple" ? x.offers.filter(o=>offerDone(x,o)).length : mGot(x);
     const t = el("a","tab" + (d === total ? " complete" : ""));
@@ -535,7 +598,52 @@ async function render(){
 
   const grid = $("grid"); grid.textContent = "";
   $("resetBtn").hidden = !canWrite;
-  if (mode === "temple") renderTemple(cur, grid); else renderMuseum(cur, grid);
+  if (mode === "temple") renderTemple(cur, grid); else if (mode === "season") renderSeason(cur, grid); else renderMuseum(cur, grid);
+}
+
+function renderSeason(cur, grid){
+  lastSeason = cur.id; try { localStorage.setItem("ci-season", cur.id); } catch(e){}
+  const groups = seasonGroups(cur.id);
+  const left = groups.reduce((n, g) => n + g.rows.filter(r => !r.done).length, 0);
+  $("toolbar").hidden = false; $("seasonChips").textContent = "";
+  $("hideGot").textContent = "Hide done"; $("hideGot").setAttribute("aria-pressed", String(filt.hideGot));
+  $("resetBtn").hidden = true;
+  $("altarTitle").textContent = cur.name;
+  $("altarSub").textContent = left ? `${left} still needed this season` : "Everything for this season is done";
+  $("note").innerHTML = 'Fish, insects and sea critters that spawn this season, and the seasonal items temple offerings still need. "Last chance" items do not come back later this year, so get them first; "Only" means this is their only season. Ticks here are the same ticks as on the Temple and Museum pages. Some fish only appear on certain days; tap a name to see when and where. Data from <a href="https://coral.guide/" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3).';
+  grid.className = "grid";
+  const q = filt.q.trim().toLowerCase();
+  const cards = [];
+  for (const g of groups){
+    const gLeft = g.rows.filter(r => !r.done).length;
+    if (!gLeft) continue; // finished cards are hidden
+    const rows = g.rows.filter(r => (!q || r.name.toLowerCase().includes(q)) && !(filt.hideGot && r.done))
+      .sort((a, b) => b.last - a.last || b.only - a.only); // ignores ticks so rows stay put when clicked
+    if (!rows.length) continue;
+    const card = el("section","offer");
+    const head = el("div","offer-head"); const hl = el("div"); hl.style.minWidth = "0";
+    const gLast = g.rows.filter(r => !r.done && r.last).length;
+    hl.append(el("h3", null, g.title), el("div","need", `${gLeft} still needed` + (gLast ? ` · ${gLast} last chance` : "")));
+    head.append(hl, el("span","count", `${g.rows.length - gLeft} / ${g.rows.length}`)); card.append(head);
+    const ul = el("ul");
+    rows.forEach(r => {
+      const extras = [];
+      if (r.q) extras.push(el("span","q " + QN[r.q], QN[r.q]));
+      if (r.qty > 1) extras.push(el("span","qty","×" + r.qty));
+      let flag = null;
+      if (r.last){
+        flag = el("span","hurry", r.only ? "Only in " + cur.name : "Last chance this year");
+        flag.title = r.only ? `Only available in ${cur.name}` : "Not available again later this year";
+      }
+      const li = el("li"); li.append(checkRow(r.key, r.name, extras, r.info, r.icon, flag));
+      if (r.info && expanded.has(r.key)) li.append(details(r.info));
+      ul.append(li);
+    });
+    card.append(ul); cards.push({el: card, weight: rows.length + 2});
+  }
+  masonry(grid, cards);
+  const shown = cards.length;
+  if (!shown) grid.append(el("p","empty", q ? "Nothing matches. Try another search." : "Everything for this season is done."));
 }
 
 function renderTemple(cur, grid){
@@ -545,6 +653,7 @@ function renderTemple(cur, grid){
   $("resetBtn").textContent = "Clear this altar";
   $("note").innerHTML = 'Offering data from <a href="https://coral.guide/my/offerings-checklist/cropaltar" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3). "Any N" means only that many of the listed items are needed. Quality badges show the minimum quality.';
   grid.className = "grid";
+  const cards = [];
   for (const o of cur.offers){
     const g = got(cur,o), n = need(o), done = g >= n;
     const card = el("section","offer" + (done ? " done" : ""));
@@ -557,15 +666,29 @@ function renderTemple(cur, grid){
       if (q) extras.push(el("span","q " + QN[q], QN[q]));
       if (qty > 1) extras.push(el("span","qty","×" + qty));
       const k = keyOf(cur,o,i), fi = INFO_BY_NAME[normName(name)];
-      const li = el("li"); li.append(checkRow(k, name, extras, fi));
+      const li = el("li"); li.append(checkRow(k, name, extras, fi, templeIcon(name)));
       if (fi && expanded.has(k)) li.append(details(fi));
       ul.append(li);
     });
     card.append(ul);
     if (o.reward){ const r = el("div","reward"); r.append("Reward: ", el("b", null, o.reward)); card.append(r); }
-    grid.append(card);
+    cards.push({el: card, weight: o.items.length + 2 + (o.reward ? 1 : 0)});
   }
+  masonry(grid, cards);
 }
+
+// Cards go into fixed columns (shortest column first, by row count), so opening details or
+// ticking an item only grows its own column instead of reshuffling cards between columns.
+let gridCols = 0;
+const colCount = () => Math.max(1, Math.floor(($("grid").clientWidth + 14) / (300 + 14)));
+function masonry(grid, cards){
+  const n = gridCols = colCount();
+  const cols = Array.from({length: n}, () => el("div","mcol")), h = new Array(n).fill(0);
+  cards.forEach(c => { const i = h.indexOf(Math.min(...h)); cols[i].append(c.el); h[i] += c.weight; });
+  grid.append(...cols);
+}
+let resizeTimer = null;
+window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (route().mode !== "museum" && colCount() !== gridCols) render(); }, 150); });
 
 function renderMuseum(cur, grid){
   const isFish = cur.id === "fish", hasInfo = !!INFO[cur.id], seasonal = ["fish","insects","critters"].includes(cur.id);
@@ -585,7 +708,7 @@ function renderMuseum(cur, grid){
       b.addEventListener("click", () => { filt.season = c; saveFilt(); render(); }); chips.append(b);
     });
   }
-  $("hideGot").setAttribute("aria-pressed", String(filt.hideGot));
+  $("hideGot").textContent = "Hide donated"; $("hideGot").setAttribute("aria-pressed", String(filt.hideGot));
   grid.className = "mlist" + (hasInfo ? " fishes" : "");
   const q = filt.q.trim().toLowerCase();
   let shown = 0;
@@ -596,7 +719,7 @@ function renderMuseum(cur, grid){
     const fi = hasInfo ? INFO[cur.id][raw] : null;
     if (seasonal && filt.season && fi && fi.s && !fi.s.includes(filt.season)) return;
     const row = el("div","mrow" + (have ? " got" : ""));
-    row.append(checkRow(key, name, null, fi));
+    row.append(checkRow(key, name, null, fi, iconPath(raw)));
     if (fi && expanded.has(key)) row.append(details(fi));
     grid.append(row); shown++;
   });
