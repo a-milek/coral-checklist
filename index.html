@@ -55,6 +55,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .tab[aria-current="page"]{background:var(--lagoon);border-color:var(--lagoon);color:var(--lagoon-ink)}
 .tab[aria-current="page"] small{color:inherit;opacity:.85}
 .tab.complete small{color:var(--done)}
+.late-toggle{border-style:dashed;background:none;color:var(--muted)}
 .tab[aria-current="page"].complete small{color:inherit}
 .tab:focus-visible,.item:focus-within,button:focus-visible{outline:2px solid var(--coral);outline-offset:2px}
 main{padding-block:18px 48px}
@@ -219,13 +220,13 @@ const ALTARS = [
   {k:"Rare_Animals_Offerings", t:"Rare Animal Products", need:-1, items:[["Black Truffle"],["Large Quail Egg"],["Large Llama Wool"],["Large Feather"],["Large Gesha Coffee Bean"]]},
   {k:"Upgrade_Resouce", t:"Upgrade Resources", need:-1, items:[["Gold Bar",3],["Silver Bar",3],["Bronze Bar",3],["Gold Kelp Essence",3],["Silver Kelp Essence",3],["Bronze Kelp Essence",3]]},
  ]},
- {id:"divingaltar", name:"Diving Altar", offers:[
+ {id:"divingaltar", name:"Diving Altar", late:true, offers:[
   {k:"Location_Diving10m", t:"Diving 10 m", need:4, items:[["Bronze Kelp Essence",3],["Marinip",2],["Bluebell Blossom",2],["Twinshade Sealeaf",2]]},
   {k:"Location_Diving20m", t:"Diving 20 m", need:4, items:[["Silver Kelp Essence",3],["Sproutfruit",3],["Helixpur Blossom",3],["Spring Sealeaf",3]]},
   {k:"Location_Diving40m", t:"Diving 40 m", need:4, items:[["Gold Kelp Essence",5],["Pink Coralcap",5],["Petalia",5],["Red Reefbud",5]]},
   {k:"Location_Diving50m", t:"Diving 50 m", need:4, items:[["Osmium Kelp Essence",5],["Goldglow",5],["Bluecole",5],["Mermoo Cheese Wheel",5]]},
  ]},
- {id:"guardianaltar", name:"Guardian Altar", offers:[
+ {id:"guardianaltar", name:"Guardian Altar", late:true, offers:[
   {k:"MasterSlime", t:"Master Slime", need:5, items:[["Any Artifact",4],["Any Fossil",4],["Plop Backpack"],["Hoarder Ring"],["Sturdy Computer"]]},
   {k:"KingTan", t:"King Tan", need:4, items:[["Yellow Jam",8,"o"],["Red Jam",8,"o"],["Lychee",8,"o"],["Mango",8,"o"]]},
   {k:"Pandazen", t:"Pandazen", need:4, items:[["Popiah",4],["Es Doger",4],["Herbed Tempeh",4],["Jackfruit Casserole",4]]},
@@ -433,6 +434,10 @@ let checks = {};
 let db = null, user = null, myId = null, canWrite = true, profiles = {};
 let filt = {q:"", season:"", hideGot:false};
 try { const s = JSON.parse(localStorage.getItem("ci-filters") || "{}"); filt.hideGot = !!s.hideGot; filt.season = s.season || ""; } catch(e){}
+// late-game altars (late:true) stay hidden until someone turns them on
+let showLate = false;
+try { showLate = localStorage.getItem("ci-late") === "1"; } catch(e){}
+const activeAltars = () => ALTARS.filter(a => showLate || !a.late);
 const saveFilt = () => { try { localStorage.setItem("ci-filters", JSON.stringify({hideGot:filt.hideGot, season:filt.season})); } catch(e){} };
 const $ = id => document.getElementById(id);
 
@@ -452,7 +457,7 @@ let lastSeason = "s";
 try { lastSeason = localStorage.getItem("ci-season") || "s"; } catch(e){}
 function seasonGroups(sid){
   const groups = [];
-  ALTARS.forEach(a => {
+  activeAltars().forEach(a => {
     const rows = [];
     a.offers.forEach(o => {
       const full = offerDone(a, o);
@@ -482,7 +487,7 @@ function route(){
   const h = location.hash.slice(1);
   if (h.startsWith("season")){ const s = SEASON_TABS.find(s => "season-" + s.id === h) || SEASON_TABS.find(s => s.id === lastSeason) || SEASON_TABS[0]; return {mode:"season", cur:s}; }
   if (h.startsWith("museum-")){ const c = MUSEUM.find(c => "museum-" + c.id === h); if (c) return {mode:"museum", cur:c}; }
-  const a = ALTARS.find(a => a.id === h);
+  const a = activeAltars().find(a => a.id === h);
   return {mode:"temple", cur: a || ALTARS[0]};
 }
 const need = o => o.need === -1 ? o.items.length : Math.min(o.need, o.items.length);
@@ -575,7 +580,7 @@ function checkRow(key, name, extras, info, iconSrc, flag){
 async function render(){
   const {mode, cur} = route();
   // progress
-  let tDone = 0, tAll = 0; ALTARS.forEach(a => { tAll += a.offers.length; tDone += a.offers.filter(o=>offerDone(a,o)).length; });
+  let tDone = 0, tAll = 0; activeAltars().forEach(a => { tAll += a.offers.length; tDone += a.offers.filter(o=>offerDone(a,o)).length; });
   let mDone = 0, mAll = 0; MUSEUM.forEach(c => { mAll += c.items.length; mDone += mGot(c); });
   $("templeText").textContent = `Temple ${tDone} / ${tAll} offerings`; $("templeBar").style.width = tDone/tAll*100 + "%";
   $("museumText").textContent = `Museum ${mDone} / ${mAll} donated`; $("museumBar").style.width = mDone/mAll*100 + "%";
@@ -594,7 +599,7 @@ async function render(){
       t.append(s.name, el("small", null, left ? `${left} left` : "done"));
       tabs.append(t);
     });
-  } else (mode === "temple" ? ALTARS : MUSEUM).forEach(x => {
+  } else (mode === "temple" ? activeAltars() : MUSEUM).forEach(x => {
     const total = mode === "temple" ? x.offers.length : x.items.length;
     const d = mode === "temple" ? x.offers.filter(o=>offerDone(x,o)).length : mGot(x);
     const t = el("a","tab" + (d === total ? " complete" : ""));
@@ -603,6 +608,17 @@ async function render(){
     t.append(mode === "temple" ? x.name.replace(" Altar","") : x.name, el("small", null, `${d}/${total}`));
     tabs.append(t);
   });
+  if (mode !== "museum"){
+    const late = ALTARS.filter(a => a.late).map(a => a.name.replace(" Altar","")).join(" and ");
+    const b = el("button","tab late-toggle", showLate ? "Hide late game" : "Late game: " + late);
+    b.type = "button"; b.setAttribute("aria-pressed", String(showLate));
+    b.title = showLate ? `Hide the ${late} altars again` : `Show the ${late} altars (unlocked later in the game)`;
+    b.addEventListener("click", () => {
+      showLate = !showLate; try { localStorage.setItem("ci-late", showLate ? "1" : "0"); } catch(e){}
+      if (!showLate && ALTARS.some(a => a.late && location.hash === "#" + a.id)) location.hash = ALTARS[0].id; else render();
+    });
+    tabs.append(b);
+  }
 
   const ids = [...new Set(Object.values(checks).map(c=>c.by).filter(Boolean))];
   if (user && ids.length){ try { profiles = await user.profiles(ids); } catch(e){} }
