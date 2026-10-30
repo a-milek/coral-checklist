@@ -436,6 +436,12 @@ const SEASON_TABS = SEASONS.map(([id, name]) => ({id, name}));
 const SESAJEN = {Spring_Offerings:"s", Summer_Offerings:"u", Fall_Offerings:"f", Winter_Offerings:"w"};
 const CROP_SEASON = {};
 ALTARS.forEach(a => a.offers.forEach(o => { if (SESAJEN[o.k]) o.items.forEach(([n]) => CROP_SEASON[normName(n)] = SESAJEN[o.k]); }));
+// Growing seasons of crops and fruit (coral.guide crops.json, fruit-trees.json, fruit-plants.json). Overrides the Sesajen guess above.
+// Underwater crops for the Diving altar grow all year, so they are left out.
+const CROP_DATA = {"Turnip":"s","Carrot":"s","Daisy":"s","Blueberry":"u","Hot Pepper":"uf","Sunflower":"u","Orchid":"f","Pumpkin":"f","Rice":"f",
+  "Snowdrop":"sw","Tea Leaf":"w","Coffee Bean":"u","Garlic":"f","Cotton":"fw","Cactus":"f",
+  "Rambutan":"su","Durian":"s","Mango":"u","Dragonfruit":"uf","Apple":"f","Lemon":"fw","Almond":"w","Cocoa Bean":"fw","Lychee":"sw"};
+for (const [n, s] of Object.entries(CROP_DATA)) CROP_SEASON[normName(n)] = s;
 const itemSeasons = name => CROP_SEASON[normName(name)] || (INFO_BY_NAME[normName(name)] || {}).s || "";
 let lastSeason = "s";
 try { lastSeason = localStorage.getItem("ci-season") || "s"; } catch(e){}
