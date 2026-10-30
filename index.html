@@ -70,7 +70,8 @@ main{padding-block:18px 48px}
 .offer[class*="kind-"]{border-top:4px solid var(--kind)}
 .offer[class*="kind-"] .offer-head{background:color-mix(in srgb,var(--kind) 12%,transparent);margin-bottom:4px}
 .offer[class*="kind-"] h3{color:color-mix(in srgb,var(--kind) 70%,var(--fg))}
-.offer.done{border-color:color-mix(in srgb,var(--done) 55%,var(--line))}
+.offer.done{border-color:color-mix(in srgb,var(--done) 55%,var(--line));opacity:.55;transition:opacity .15s}
+.offer.done:hover,.offer.done:focus-within{opacity:1}
 .offer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 10px}
 .offer-head h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0;line-height:1.15;min-width:0}
 .need{font-size:12px;color:var(--muted);margin-top:2px;font-weight:600}
@@ -686,7 +687,7 @@ function renderTemple(cur, grid){
     const card = el("section","offer" + (done ? " done" : ""));
     const head = el("div","offer-head"); const hl = el("div"); hl.style.minWidth = "0";
     hl.append(el("h3", null, o.t), el("div","need", o.need === -1 ? "All required" : `Any ${n} of ${o.items.length}`));
-    head.append(hl, el("span","count", done ? "Ready ✓" : `${Math.min(g,n)} / ${n}`)); card.append(head);
+    head.append(hl, el("span","count", done ? "Completed ✓" : `${Math.min(g,n)} / ${n}`)); card.append(head);
     const ul = el("ul");
     o.items.forEach(([name, qty=1, q], i) => {
       const extras = [];
@@ -699,9 +700,9 @@ function renderTemple(cur, grid){
     });
     card.append(ul);
     if (o.reward){ const r = el("div","reward"); r.append("Reward: ", el("b", null, o.reward)); card.append(r); }
-    cards.push({el: card, weight: o.items.length + 2 + (o.reward ? 1 : 0)});
+    cards.push({el: card, done, weight: o.items.length + 2 + (o.reward ? 1 : 0)});
   }
-  masonry(grid, cards);
+  masonry(grid, cards.sort((a, b) => a.done - b.done)); // completed offerings go last
 }
 
 // Cards go into fixed columns (shortest column first, by row count), so opening details or
