@@ -624,9 +624,12 @@ async function render(){
   const ids = [...new Set(Object.values(checks).map(c=>c.by).filter(Boolean))];
   if (user && ids.length){ try { profiles = await user.profiles(ids); } catch(e){} }
 
-  const grid = $("grid"); grid.textContent = "";
+  // Build off-page and swap in at once: emptying the live grid first would let the page shrink
+  // for a moment (colCount measures it), and the browser then pulls the scroll position up.
+  const grid = $("grid"), next = document.createElement("div");
   $("resetBtn").hidden = !canWrite;
-  if (mode === "temple") renderTemple(cur, grid); else if (mode === "season") renderSeason(cur, grid); else renderMuseum(cur, grid);
+  if (mode === "temple") renderTemple(cur, next); else if (mode === "season") renderSeason(cur, next); else renderMuseum(cur, next);
+  grid.className = next.className; grid.replaceChildren(...next.childNodes);
 }
 
 function renderSeason(cur, grid){
