@@ -702,8 +702,13 @@ function renderTemple(cur, grid){
     if (o.reward){ const r = el("div","reward"); r.append("Reward: ", el("b", null, o.reward)); card.append(r); }
     cards.push({el: card, done, weight: o.items.length + 2 + (o.reward ? 1 : 0)});
   }
-  masonry(grid, cards.sort((a, b) => a.done - b.done)); // completed offerings go last
+  if (!templeOrder || templeOrder.id !== cur.id)
+    templeOrder = {id: cur.id, order: cards.map((c, i) => i).sort((a, b) => cards[a].done - cards[b].done)};
+  masonry(grid, templeOrder.order.map(i => cards[i]));
 }
+// Completed offerings go last, but the order is only worked out when an altar is opened, so
+// finishing one fades it in place instead of moving cards around while you tick.
+let templeOrder = null;
 
 // Cards go into fixed columns (shortest column first, by row count), so opening details or
 // ticking an item only grows its own column instead of reshuffling cards between columns.
@@ -784,11 +789,11 @@ $("resetBtn").addEventListener("click", async () => {
   clearTimeout(armed); btn.classList.remove("arm");
   const prefix = mode === "temple" ? cur.id + "~" : `museum~${cur.id}~`;
   const keys = Object.keys(checks).filter(k => k.startsWith(prefix));
-  keys.forEach(k => delete checks[k]); render();
+  keys.forEach(k => delete checks[k]); templeOrder = null; render();
   if (db) for (const k of keys){ try { await db.collection("checks").doc(k).delete(); } catch(e){} }
 });
 
-window.addEventListener("hashchange", () => { filt.q = ""; $("search").value = ""; render(); window.scrollTo(0,0); });
+window.addEventListener("hashchange", () => { templeOrder = null; filt.q = ""; $("search").value = ""; render(); window.scrollTo(0,0); });
 render();
 
 // ---- Sync through Firebase Realtime Database ----
@@ -831,8 +836,10 @@ function avatarFor(name){
     delete: () => ref.child(k).remove(),
   }) }) };
   firebase.database().ref(".info/connected").on("value", s => { if (s.val() === false && Object.keys(checks).length) setStatus("err", "Offline. Changes will sync when you reconnect."); });
+  let firstSync = true;
   ref.on("value", snap => {
     checks = snap.val() || {};
+    if (firstSync){ firstSync = false; templeOrder = null; } // the page first renders before any ticks have loaded
     profiles = {};
     for (const c of Object.values(checks)) if (c && c.by && !profiles[c.by]) profiles[c.by] = {name: c.by, avatarUrl: avatarFor(c.by), isMe: c.by === myId};
     setStatus("live", "Synced live");
