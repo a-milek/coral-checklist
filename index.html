@@ -64,6 +64,11 @@ main{padding-block:18px 48px}
 .grid{display:flex;gap:14px;align-items:flex-start}
 .mcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
 .offer{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.offer.kind-temple{--kind:var(--sp)}
+.offer.kind-museum{--kind:var(--lagoon)}
+.offer[class*="kind-"]{border-top:4px solid var(--kind)}
+.offer[class*="kind-"] .offer-head{background:color-mix(in srgb,var(--kind) 12%,transparent);margin-bottom:4px}
+.offer[class*="kind-"] h3{color:color-mix(in srgb,var(--kind) 70%,var(--fg))}
 .offer.done{border-color:color-mix(in srgb,var(--done) 55%,var(--line))}
 .offer-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px 10px}
 .offer-head h3{font-family:var(--f-display);font-weight:600;font-size:19px;margin:0;line-height:1.15;min-width:0}
@@ -457,13 +462,13 @@ function seasonGroups(sid){
         rows.push({key, name, qty, q, s: itemSeasons(name), info: INFO_BY_NAME[normName(name)], icon: templeIcon(name)});
       });
     });
-    groups.push({title: a.name, rows});
+    groups.push({title: a.name, kind: "temple", rows});
   });
   [["fish","Fish"],["insects","Insects"],["critters","Sea Critters"]].forEach(([id, title]) => {
     const c = MUSEUM.find(m => m.id === id);
     const rows = c.items.filter(raw => ((INFO[id][raw] || {}).s || "").includes(sid))
       .map(raw => ({key: mKey(c, raw), name: prettify(raw), s: INFO[id][raw].s, info: INFO[id][raw], icon: iconPath(raw)}));
-    groups.push({title: "Museum: " + title, rows});
+    groups.push({title: "Museum: " + title, kind: "museum", rows});
   });
   // last chance = not in any later season this year (in Winter: not in next Spring either, since it runs straight on)
   const i = SEASONS.findIndex(([c]) => c === sid);
@@ -626,7 +631,7 @@ function renderSeason(cur, grid){
     const rows = g.rows.filter(r => (!q || r.name.toLowerCase().includes(q)) && !(filt.hideGot && r.done))
       .sort((a, b) => b.last - a.last || b.only - a.only); // ignores ticks so rows stay put when clicked
     if (!rows.length) continue;
-    const card = el("section","offer");
+    const card = el("section","offer kind-" + g.kind);
     const head = el("div","offer-head"); const hl = el("div"); hl.style.minWidth = "0";
     const gLast = g.rows.filter(r => !r.done && r.last).length;
     hl.append(el("h3", null, g.title), el("div","need", `${gLeft} still needed` + (gLast ? ` · ${gLast} last chance` : "")));
