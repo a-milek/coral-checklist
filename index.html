@@ -249,6 +249,7 @@ const MUSEUM = [
  {id:"fish", name:"Fish", raw:"Salmon,Giant_Snakehead,Catfish,Flowerhorn,Tilapia,Red_king_arowana,Silver_arowana,Koi,Black_Phantom_Ghost_Fish,Gator_Gar,Rainbow_Fish,Tiger_Barb,Crayfish,Freshwater_eel,GoldFish,Snakehead,Bluegill,Arapaima,Zebra_Fish,Golden_Gar,Chub,Brown_trout,Cobia,Frogfish,Monkfish,Yellowtail,Tuna,Pufferfish,Ruby_Red_Dragonet,Yellow_Moray_Eel,Pink_Snapper,Squid,Octopus,Giant_Mudskipper,Grouper,Sea_Cucumber,Parrotfish,Polka-dot_batfish,Flameback_Fish,Giant_Stingray,Lobster,Lionfish,Damselfish,Mandarin,Archer,Angelfish,Blue_Tang,Clownfish,Firefish,Asian_Sheepshead,BoxFish,Mackerel,Yellowfin_tuna,Crab,Swordfish,Cod,Barracuda,Giant_Sea_Bass,Sardines,Red_Snapper,Green_Sawfish,Sturgeon,Sockeye_Salmon,Shrimp,Barramundi,Jellyfish,Great_White_Shark,Hammerhead,Raja_Ampat_Shark"},
  {id:"insects", name:"Insects", raw:"Polyphemus_Moth,Ghost_Mantis,Tiger_Beetle,Harpalus_Beetle,Firefly,Pipevine_Swallowtail_Butterfly,Little_Wood_Satyr_Butterfly,Wolf_Spider,Yucca_Moth,Puss_Moth,Lady_Beetle,Violin_Beetle,Scarites_Beetle,Orchid_Mantis,Fly,Blue_Morpho_Butterfly,Crowned_Hairstreak_Butterfly,Widow_Spider,Assam_silk_moth,Dragonfly,Rove_Beetle,Soldier_Beetle,Praying_Mantis,Tiger_Swallowtail_Butterfly,Janetta_Forester_Butterfly,Tarantula,Atlas_Moth,Grasshopper,Ground_beetle,Leaf_Beetle,Monarch_Caterpillar,Spicebush_Swallowtail_Butterfly,Birdwing_Butterfly,Cecropia_Caterpillar,Maple_Leafcutter_Moth,Man-faced_stink_bug,Snail,Cricket,Wasp,Centipede,Moth,Magnolia_green_jumper,Pine_Sphinx,Luna_Moth,Striped_garden_caterpillar,Hickory_Horned_Devil,Western_Tiger_Swallowtail,Saddleback,Eastern_Black_Swallowtail,Gulf_Fritillary,Red_Admiral,Banded_woollybear,Olivewing_Butterfly"},
  {id:"critters", name:"Sea Critters", raw:"Arrow_Crab,Common_Starfish,Flowerhat_Jellyfish,Tigertail_Seahorse,Jayakar_Seahorse,Skunk_Cleaner_Shrimp,Eight_armed_sea_star,Whelk,Mantis_Shrimp,Blue_Lobster,Giraffe_seahorse,Hermit_Crab,Mauve_Stinger_Jellyfish,CannonBall_Jellyfish,Upside-down_jellyfish,Pom-pom_crab,Sea_Slug,Venuss_flower_basket,Bloodbelly_comb_jellyfish,Pink_Meanie_Jellyfish,Atolla_jellyfish,White_Spotted_Jellyfish,Cauliflower_Jellyfish,Horseshoe_Crab,Blue_Crab,Sexy_Shrimp,Harlequin_Shrimp,Calico_Lobster,Split_Colored_Lobster,Cotton_Candy_Lobster,Sunflower_sea_star,Crown_of_Thorns_Starfish,Brisingida_Starfish,Red_Knob_Starfish,Blue_Starfish,Leafy_Sea_Dragon,Hedgehog_Seahorse,Shiho_Seahorse,Sea_Anemone,Chambered_nautilus,Giant_Isopod,Fuschia_flatworm,Ruby_seadragon,Stone_Crab,Yeti_Crab"},
+ {id:"prints", name:"Dino Prints", raw:"Brontosaurus_prints,Tyrannosaurus_prints,Mosasaurus_prints,Triceratops_prints,Pterodactyl_prints,Velociraptor_prints,Plesiosaurus_prints,Mammoth_prints,Stegosaurus_prints,Gallimimus_prints"},
 ];
 const NAME_FIX = {Ships_Wheel:"Ship's Wheel", Dragons_Tears:"Dragon's Tears", Dragons_trisula:"Dragon's Trisula", Cassete_Player:"Cassette Player", C_I__Jo:"C.I. Jo", Triceratops_leg2:"Triceratops Leg", Triceratops_pelvis2:"Triceratops Pelvis", Venuss_flower_basket:"Venus's Flower Basket", GoldFish:"Goldfish", BoxFish:"Boxfish", CannonBall_Jellyfish:"Cannonball Jellyfish", Sardines:"Sardine", Hammerhead:"Hammerhead Shark", blue_quartz:"Blue Quartz"};
 const prettify = r => NAME_FIX[r] || r.split("_").map(w => w.split("-").map(p => p ? p[0].toUpperCase() + p.slice(1) : p).join("-")).join(" ");
@@ -568,7 +569,23 @@ function dropDetails(d){
   if (d.sell) { const s = el("div"); s.append(el("b",null,"Sells for: "), d.sell + " coins"); box.append(s); }
   return box;
 }
-const details = info => info.kind === "recipe" ? recipeDetails(info) : info.kind === "drop" ? dropDetails(info) : fishDetails(info);
+// ---- Dino prints (dinosaur holograms in the museum) ----
+// Unlock, place, install time and reward: Coral Island Fandom wiki, Museum page.
+// Hologram items: one player's answer on the Steam forum; not confirmed on the wiki.
+const PRINT_INFO = {kind:"print",
+  where:"Cave of Memories, during the \"Dino Prints\" quest",
+  unlock:"All fossils donated and Town Rank A",
+  holo:"5 of this print, 10 Glass, 5 Battery, 2 Osmium Bar, 1 Illuminating Ring, 5,000 coins",
+  reward:"A dinosaur skin of the same name (none for Pterodactyl). Installing takes 2 days"};
+INFO.prints = Object.fromEntries(MUSEUM.find(c => c.id === "prints").items.map(r => [r, PRINT_INFO]));
+function printDetails(d){
+  const box = el("div","finfo");
+  const line = (lab, val) => { const x = el("div"); x.append(el("b", null, lab + ": "), val); box.append(x); };
+  line("Where", d.where); line("Can donate after", d.unlock); line("Hologram needs", d.holo); line("Reward", d.reward);
+  box.append(el("div","src","Hologram items from a player's answer on the Steam forum, not confirmed on the wiki"));
+  return box;
+}
+const details = info => info.kind === "print" ? printDetails(info) : info.kind === "recipe" ? recipeDetails(info) : info.kind === "drop" ? dropDetails(info) : fishDetails(info);
 const expanded = new Set();
 function checkRow(key, name, extras, info, iconSrc, flag){
   const c = checks[key];
@@ -786,7 +803,9 @@ function renderMuseum(cur, grid){
   $("altarTitle").textContent = cur.name;
   $("altarSub").textContent = `${mGot(cur)} of ${cur.items.length} donated`;
   $("resetBtn").textContent = "Clear this collection";
-  $("note").innerHTML = !seasonal && hasInfo
+  $("note").innerHTML = cur.id === "prints"
+    ? 'Prints go in the museum donation box, in the hologram section. Each dinosaur needs 5 of its print plus other items; tap a name for details. Sources: <a href="https://coralisland.fandom.com/wiki/Museum" target="_blank" rel="noopener">Fandom wiki: Museum</a>, <a href="https://coralisland.wiki/wiki/Dino_Prints" target="_blank" rel="noopener">Coral Island Wiki: Dino Prints quest</a> and <a href="https://steamcommunity.com/app/1158160/discussions/0/4522261213596591804/" target="_blank" rel="noopener">a Steam forum thread</a>.'
+    : !seasonal && hasInfo
     ? 'Tap a name to see where it comes from. Coffers and geodes are opened at the Blacksmith and fossil nodes at the Lab; the percentage is the chance per item opened. Data from <a href="https://coral.guide/" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3).'
     : hasInfo
     ? 'Tap a name to see where and when to find it. Museum list and spawn data from <a href="https://coral.guide/" target="_blank" rel="noopener">Coral Guide</a> (game version v1.3). For 11 fish, coral.guide has no place or time data, so those come from the <a href="https://coralisland.wiki/wiki/Fish" target="_blank" rel="noopener">Coral Island wiki</a>. Notes describe extra conditions, such as date windows or other places.'
