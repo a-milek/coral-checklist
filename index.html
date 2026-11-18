@@ -54,6 +54,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .tab small{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}
 .tab[aria-current="page"]{background:var(--lagoon);border-color:var(--lagoon);color:var(--lagoon-ink)}
 .tab[aria-current="page"] small{color:inherit;opacity:.85}
+.tab.complete:not([aria-current="page"]){opacity:.55;transition:opacity .2s}
+.tab.complete:hover{opacity:1}
 .tab.complete small{color:var(--done)}
 .late-toggle{border-style:dashed;background:none;color:var(--muted)}
 .tab[aria-current="page"].complete small{color:inherit}
@@ -606,6 +608,20 @@ function checkRow(key, name, extras, info, iconSrc, flag){
   return lab;
 }
 
+// ---- Finished tabs go last. The order is worked out when you switch tabs (and once the first sync
+// arrives), so finishing the altar you're on fades its tab in place instead of moving it while you tick.
+const altarDone = a => a.offers.every(o => offerDone(a, o));
+const colDone = c => mGot(c) === c.items.length;
+const groupDone = g => ATTRACTIONS.filter(a => a.g === g.id).every(aDone);
+let tabCache = null;
+function tabOrder(mode, list, isDone){
+  const key = mode + ":" + list.map(x => x.id).join(",");
+  if (!tabCache || tabCache.key !== key)
+    tabCache = {key, ids: list.map((x, i) => [x, i]).sort((a, b) => isDone(a[0]) - isDone(b[0]) || a[1] - b[1]).map(([x]) => x.id)};
+  return tabCache.ids.map(id => list.find(x => x.id === id));
+}
+const firstOpen = (list, isDone) => list.find(x => !isDone(x)) || list[0];
+
 async function render(){
   const {mode, cur} = route();
   // progress
@@ -617,7 +633,7 @@ async function render(){
   $("attrText").textContent = `Attractions ${aReady} / ${ATTRACTIONS.length} ready`; $("attrBar").style.width = aReady/ATTRACTIONS.length*100 + "%";
   // mode switch
   const modes = $("modes"); modes.textContent = "";
-  [["temple","Temple offerings","#" + ALTARS[0].id],["museum","Museum","#museum-" + MUSEUM[0].id],["season","This season","#season-" + lastSeason],["attr","Attractions","#" + ATTR_GROUPS[0].id]].forEach(([m,label,href]) => {
+  [["temple","Temple offerings","#" + firstOpen(activeAltars(), altarDone).id],["museum","Museum","#museum-" + firstOpen(MUSEUM, colDone).id],["season","This season","#season-" + lastSeason],["attr","Attractions","#" + firstOpen(ATTR_GROUPS, groupDone).id]].forEach(([m,label,href]) => {
     const a = el("a","mode",label); a.href = href; if (m === mode) a.setAttribute("aria-current","page"); modes.append(a);
   });
   // tabs
@@ -631,14 +647,14 @@ async function render(){
       tabs.append(t);
     });
   } else if (mode === "attr"){
-    ATTR_GROUPS.forEach(x => {
+    tabOrder(mode, ATTR_GROUPS, groupDone).forEach(x => {
       const inG = ATTRACTIONS.filter(a => a.g === x.id), d = inG.filter(aDone).length;
       const t = el("a","tab" + (d === inG.length ? " complete" : "")); t.href = "#" + x.id; t.setAttribute("role","tab");
       if (x === cur) t.setAttribute("aria-current","page");
       t.append(x.name, el("small", null, `${d}/${inG.length}`));
       tabs.append(t);
     });
-  } else (mode === "temple" ? activeAltars() : MUSEUM).forEach(x => {
+  } else tabOrder(mode, mode === "temple" ? activeAltars() : MUSEUM, mode === "temple" ? altarDone : colDone).forEach(x => {
     const total = mode === "temple" ? x.offers.length : x.items.length;
     const d = mode === "temple" ? x.offers.filter(o=>offerDone(x,o)).length : mGot(x);
     const t = el("a","tab" + (d === total ? " complete" : ""));
@@ -827,9 +843,12 @@ function renderAttractions(cur, grid){
     const line = (lab, val) => { const d = el("div"); d.append(el("b", null, lab + ": "), val); info.append(d); };
     line("Perks", a.perks); line("Friendship with", a.friends);
     card.append(info);
-    cards.push({el: card, weight: n + 4});
+    cards.push({el: card, done, weight: n + 4});
   }
-  masonry(grid, cards);
+  // finished attractions go last; like the altars, the order is only worked out when the group is opened
+  if (!templeOrder || templeOrder.id !== cur.id)
+    templeOrder = {id: cur.id, order: cards.map((c, i) => i).sort((a, b) => cards[a].done - cards[b].done || a - b)};
+  masonry(grid, templeOrder.order.map(i => cards[i]));
 }
 
 async function toggle(k, on){
@@ -862,11 +881,11 @@ $("resetBtn").addEventListener("click", async () => {
   clearTimeout(armed); btn.classList.remove("arm");
   const prefixes = mode === "temple" ? [cur.id + "~"] : mode === "attr" ? ATTRACTIONS.filter(a => a.g === cur.id).map(a => `attr~${a.id}~`) : [`museum~${cur.id}~`];
   const keys = Object.keys(checks).filter(k => prefixes.some(p => k.startsWith(p)));
-  keys.forEach(k => delete checks[k]); templeOrder = null; render();
+  keys.forEach(k => delete checks[k]); templeOrder = null; tabCache = null; render();
   if (db) for (const k of keys){ try { await db.collection("checks").doc(k).delete(); } catch(e){} }
 });
 
-window.addEventListener("hashchange", () => { templeOrder = null; filt.q = ""; $("search").value = ""; render(); window.scrollTo(0,0); });
+window.addEventListener("hashchange", () => { templeOrder = null; tabCache = null; filt.q = ""; $("search").value = ""; render(); window.scrollTo(0,0); });
 render();
 
 // ---- Sync through Firebase Realtime Database ----
@@ -911,6 +930,7 @@ function avatarFor(name){
   firebase.database().ref(".info/connected").on("value", s => { if (s.val() === false && Object.keys(checks).length) setStatus("err", "Offline. Changes will sync when you reconnect."); });
   let firstSync = true;
   ref.on("value", snap => {
+    if (!window.__firstSync){ window.__firstSync = true; tabCache = null; templeOrder = null; }
     checks = snap.val() || {};
     if (firstSync){ firstSync = false; templeOrder = null; } // the page first renders before any ticks have loaded
     profiles = {};
